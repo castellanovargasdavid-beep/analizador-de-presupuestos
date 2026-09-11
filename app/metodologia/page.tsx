@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Card } from "@/components/ui/Card";
 import { ConfidenceTag } from "@/components/result/ConfidenceTag";
-import { UMBRAL_RITE_KW } from "@/lib/pricing/data";
+import { RITE_UMBRAL_KW } from "@/lib/estimation/seed-data";
 
 export const metadata: Metadata = {
   title: "Metodología: cómo calculamos los precios",
@@ -36,7 +36,7 @@ export default function MetodologiaPage() {
           <div className="flex items-start gap-3">
             <ConfidenceTag confidence="A" />
             <p className="text-neutral-700">
-              <strong>Fuente verificable.</strong> Normativa oficial (por ejemplo, el umbral de {UMBRAL_RITE_KW} kW del
+              <strong>Fuente verificable.</strong> Normativa oficial (por ejemplo, el umbral de {RITE_UMBRAL_KW} kW del
               RITE) o un precio de catálogo real de un actor de mercado (por ejemplo, las tarifas publicadas por un
               instalador/retailer).
             </p>
@@ -68,8 +68,30 @@ export default function MetodologiaPage() {
           <li>Necesidad de retirar un equipo antiguo (y si se reutiliza o se desecha).</li>
           <li>Instalación eléctrica dedicada, canaleta vista y bomba de condensados, cuando aplican.</li>
           <li>Gama del equipo (económica, media o premium).</li>
-          <li>Zona (Madrid/Cataluña frente al resto de España), como ajuste amplio y explícitamente incierto.</li>
+          <li>Comunidad autónoma: solo Madrid y Cataluña llevan un ajuste (señal débil), el resto no se penaliza.</li>
+          <li>IVA: 10% reducido o 21% general, según el test legal de la Agencia Tributaria (ver más abajo).</li>
         </ul>
+      </Card>
+
+      <Card className="mt-6">
+        <h2 className="font-bold text-neutral-950">IVA: por qué casi siempre aplicamos el 21%</h2>
+        <p className="mt-2 text-neutral-700">
+          El art. 91.Uno.2.10º de la Ley 37/1992 permite un IVA reducido del 10% en reformas de vivienda particular,
+          pero exige tres requisitos a la vez: persona física con uso particular, vivienda con más de 2 años, y que
+          los materiales aportados por la empresa no superen el 40% de la base imponible. En instalaciones de aire
+          acondicionado, el equipo casi siempre supera ese 40% del total, así que aunque cumplas los otros dos
+          requisitos, se aplica el tipo general. Si compras el equipo por separado y solo contratas la instalación,
+          la mano de obra podría tributar al 10% — nuestra calculadora te lo señala cuando aplica.
+        </p>
+      </Card>
+
+      <Card className="mt-6">
+        <h2 className="font-bold text-neutral-950">Por qué el rango se ensancha o se estrecha</h2>
+        <p className="mt-2 text-neutral-700">
+          El rango final no es fijo: se ensancha más cuanto más dependa el cálculo de heurísticas propias (C) frente
+          a fuentes verificables (A) o de mercado (B). Es una decisión deliberada: preferimos un rango más amplio y
+          honesto a uno estrecho que aparente una precisión que no tenemos.
+        </p>
       </Card>
 
       <Card className="mt-6">

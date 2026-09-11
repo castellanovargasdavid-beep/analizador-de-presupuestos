@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Wizard } from "@/components/calculator/Wizard";
-import { UMBRAL_RITE_KW } from "@/lib/pricing/data";
+import { RITE_UMBRAL_KW } from "@/lib/estimation/seed-data";
+import { listMaterialLevels, listRegions } from "@/lib/estimation/repository";
 
 export const metadata: Metadata = {
   title: "Precio de instalar aire acondicionado: calculadora orientativa",
@@ -10,7 +11,12 @@ export const metadata: Metadata = {
     "Calcula el rango de precio razonable para instalar aire acondicionado en España según tipo de sistema, potencia, ubicación y calidad del equipo. Metodología transparente, sin registro.",
 };
 
-export default function InstalacionPage() {
+// Regiones y niveles de material cambian poco; se revalida cada hora en vez
+// de exigir un redeploy completo para reflejar cambios en el seed.
+export const revalidate = 3600;
+
+export default async function InstalacionPage() {
+  const [regions, materialLevels] = await Promise.all([listRegions(), listMaterialLevels()]);
   return (
     <Container className="max-w-3xl py-12">
       <nav aria-label="Breadcrumb" className="text-sm text-neutral-500">
@@ -42,7 +48,7 @@ export default function InstalacionPage() {
       </div>
 
       <div className="mt-10">
-        <Wizard mode="calculadora" />
+        <Wizard mode="calculadora" regions={regions} materialLevels={materialLevels} />
       </div>
 
       <section className="mt-16 space-y-6 text-neutral-700">
@@ -54,7 +60,7 @@ export default function InstalacionPage() {
           en vez de darte un único número genérico.
         </p>
         <p>
-          Un dato normativo que casi nunca se menciona: si la potencia nominal supera los {UMBRAL_RITE_KW} kW, el
+          Un dato normativo que casi nunca se menciona: si la potencia nominal supera los {RITE_UMBRAL_KW} kW, el
           RITE exige memoria técnica y registro del certificado ante tu Comunidad Autónoma. Es un trámite real que
           puede formar parte del presupuesto — nuestra calculadora te avisa si tu caso lo necesita.
         </p>

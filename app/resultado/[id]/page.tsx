@@ -7,9 +7,8 @@ import { Badge } from "@/components/ui/Badge";
 import { LinkButton } from "@/components/ui/Button";
 import { RangeBar } from "@/components/result/RangeBar";
 import { Breakdown } from "@/components/result/Breakdown";
-import { decodeState } from "@/lib/pricing/encode";
+import { getEstimateForDisplay } from "@/lib/estimation/repository";
 import { formatEUR } from "@/lib/format";
-import type { EstimationResult } from "@/lib/pricing/types";
 import { AlertTriangleIcon, InfoIcon } from "@/components/ui/icons";
 
 export const metadata: Metadata = {
@@ -19,11 +18,16 @@ export const metadata: Metadata = {
 
 export default async function ResultadoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const result = decodeState<EstimationResult>(id);
+  const data = await getEstimateForDisplay(id);
 
-  if (!result) {
+  if (!data) {
     notFound();
   }
+
+  const { estimate, items, ranges, methodologyVersion } = data;
+  const ivaRange = ranges.find((r) => r.groupKey === "iva");
+  const rite = estimate.inputs as { quantities?: { potenciaKw?: number } };
+  const superaRite = typeof rite.quantities?.potenciaKw === "number" && rite.quantities.potenciaKw > 5;
 
   return (
     <Container className="max-w-3xl py-12">
@@ -41,19 +45,28 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
       <h1 className="mt-3 text-2xl font-bold text-neutral-950 sm:text-3xl">Tu estimación orientativa</h1>
 
       <Card className="mt-6">
-        <p className="text-sm font-semibold text-neutral-500">Estimación orientativa</p>
+        <p className="text-sm font-semibold text-neutral-500">Estimación orientativa (IVA incluido)</p>
         <p className="mt-1 text-4xl font-bold tabular-nums text-brand-800">
-          {formatEUR(result.totalRange.min)} – {formatEUR(result.totalRange.max)}
+          {formatEUR(estimate.totalMin)} – {formatEUR(estimate.totalMax)}
         </p>
         <div className="mt-6">
-          <RangeBar rangeMin={result.totalRange.min} rangeMax={result.totalRange.max} />
+          <RangeBar rangeMin={estimate.totalMin} rangeMax={estimate.totalMax} />
         </div>
+        {ivaRange && (
+          <p className="mt-4 text-sm text-neutral-500">
+            Incluye IVA al {Math.round(estimate.vatRatePct * 100)}% ({formatEUR(ivaRange.min)} – {formatEUR(ivaRange.max)}
+            ).
+          </p>
+        )}
       </Card>
 
-      {result.rite.requiereRegistroCCAA && (
+      {superaRite && (
         <div className="mt-6 flex gap-3 rounded-xl bg-info-bg p-4">
           <InfoIcon className="mt-0.5 size-5 shrink-0 text-info-text" />
-          <p className="text-sm text-info-text">{result.rite.mensaje}</p>
+          <p className="text-sm text-info-text">
+            Tu instalación supera los 5 kW: el RITE exige memoria técnica y registro del certificado ante tu
+            Comunidad Autónoma. Pregunta a tu instalador si este trámite está incluido en el presupuesto.
+          </p>
         </div>
       )}
 
@@ -64,25 +77,26 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
           sin metodología pública, <strong>C</strong> heurística propia.
         </p>
         <div className="mt-4">
-          <Breakdown lineItems={result.lineItems} />
+          <Breakdown items={items} />
         </div>
       </Card>
 
-      {result.advertencias.length > 0 && (
-        <Card className="mt-6 border-warning-bg bg-warning-bg/40">
-          <div className="flex gap-3">
-            <AlertTriangleIcon className="mt-0.5 size-5 shrink-0 text-warning-text" />
-            <div>
-              <h2 className="font-bold text-neutral-950">Advertencias sobre esta estimación</h2>
-              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-neutral-700">
-                {result.advertencias.map((a) => (
-                  <li key={a}>{a}</li>
-                ))}
-              </ul>
-            </div>
+      <Card className="mt-6 border-warning-bg bg-warning-bg/40">
+        <div className="flex gap-3">
+          <AlertTriangleIcon className="mt-0.5 size-5 shrink-0 text-warning-text" />
+          <div>
+            <h2 className="font-bold text-neutral-950">Sobre el IVA aplicado</h2>
+            <p className="mt-2 text-sm text-neutral-700">
+              Se ha aplicado el tipo{" "}
+              <strong>{estimate.vatScenario === "general" ? "general (21%)" : "reducido (10%)"}</strong>. El tipo
+              reducido del 10% solo aplica si eres persona física, la vivienda es de uso particular y tiene más de 2
+              años, <strong>y además</strong> el equipo no supera el 40% del presupuesto — algo que en instalaciones
+              de aire acondicionado suele incumplirse porque el equipo domina el coste. Si compras el equipo por
+              separado y solo contratas la instalación, la mano de obra podría tributar al 10%: pregúntalo.
+            </p>
           </div>
-        </Card>
-      )}
+        </div>
+      </Card>
 
       <Card className="mt-6">
         <h2 className="font-bold text-neutral-950">Siguiente paso</h2>
@@ -95,7 +109,7 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
       </Card>
 
       <p className="mt-8 text-center text-sm text-neutral-500">
-        <Badge tone="neutral">Metodología {result.methodologyVersion}</Badge> — esto no es una tasación profesional.{" "}
+        <Badge tone="neutral">Metodología {methodologyVersion}</Badge> — esto no es una tasación profesional.{" "}
         <Link href="/metodologia" className="font-semibold text-brand-700 hover:underline">
           Ver metodología completa
         </Link>

@@ -1,4 +1,4 @@
-import type { Confidence } from "@/lib/pricing/types";
+import type { Confidence } from "@/lib/estimation/types";
 
 const LABEL: Record<Confidence, string> = {
   A: "Fuente verificable (normativa o catálogo real)",

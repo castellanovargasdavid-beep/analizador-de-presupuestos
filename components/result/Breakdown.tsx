@@ -1,21 +1,30 @@
 import { formatEUR } from "@/lib/format";
-import type { EstimationLineItem } from "@/lib/pricing/types";
+import type { Confidence } from "@/lib/estimation/types";
 import { ConfidenceTag } from "./ConfidenceTag";
 
-export function Breakdown({ lineItems }: { lineItems: EstimationLineItem[] }) {
+export interface BreakdownItem {
+  key: string;
+  label: string;
+  min: number;
+  max: number;
+  confidence: Confidence;
+  isOptional: boolean;
+}
+
+export function Breakdown({ items }: { items: BreakdownItem[] }) {
   return (
     <div className="divide-y divide-neutral-100">
-      {lineItems.map((item) => (
+      {items.map((item) => (
         <div key={item.key} className="flex items-center justify-between gap-4 py-3">
           <div className="flex items-center gap-2">
-            <ConfidenceTag confidence={item.range.confidence} />
+            <ConfidenceTag confidence={item.confidence} />
             <div>
               <p className="font-medium text-neutral-950">{item.label}</p>
-              {!item.siempreIncluido && <p className="text-xs text-neutral-500">Partida opcional/condicional</p>}
+              {item.isOptional && <p className="text-xs text-neutral-500">Partida opcional/condicional</p>}
             </div>
           </div>
           <p className="whitespace-nowrap font-semibold text-neutral-950">
-            {formatEUR(item.range.min)} – {formatEUR(item.range.max)}
+            {formatEUR(item.min)} – {formatEUR(item.max)}
           </p>
         </div>
       ))}

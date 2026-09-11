@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Wizard } from "@/components/calculator/Wizard";
+import { listMaterialLevels, listRegions } from "@/lib/estimation/repository";
 
 export const metadata: Metadata = {
   title: "¿Es caro tu presupuesto de aire acondicionado? Compáralo",
@@ -9,7 +10,10 @@ export const metadata: Metadata = {
     "Introduce el presupuesto que te han dado para instalar aire acondicionado y comprueba si está dentro del rango habitual, por encima o por debajo, con posibles razones y preguntas recomendadas.",
 };
 
-export default function AnalizarPresupuestoPage() {
+export const revalidate = 3600;
+
+export default async function AnalizarPresupuestoPage() {
+  const [regions, materialLevels] = await Promise.all([listRegions(), listMaterialLevels()]);
   return (
     <Container className="max-w-3xl py-12">
       <nav aria-label="Breadcrumb" className="text-sm text-neutral-500">
@@ -46,7 +50,7 @@ export default function AnalizarPresupuestoPage() {
       </div>
 
       <div className="mt-10">
-        <Wizard mode="analizador" />
+        <Wizard mode="analizador" regions={regions} materialLevels={materialLevels} />
       </div>
 
       <section className="mt-16 space-y-4 text-neutral-700">

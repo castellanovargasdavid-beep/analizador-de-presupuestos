@@ -6,27 +6,39 @@ import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
 import { StepIndicator } from "../ui/StepIndicator";
 import { CheckboxRow, FieldLabel, NumberField, RadioCardGroup, TextField } from "../ui/FormControls";
-import { analyzeBudget, calculateEstimation, estimatePotenciaKwFromSuperficie } from "@/lib/pricing/engine";
-import { encodeState } from "@/lib/pricing/encode";
-import type { CalculatorInput, DeclaredBudget, Gama, RetiradaEquipo, SystemType, ZonaPrecio } from "@/lib/pricing/types";
-import { ArrowRightIcon } from "../ui/icons";
+import { estimatePotenciaKwFromSuperficie } from "@/lib/estimation/sizing";
+import { calculateEstimateAction, compareBudgetAction } from "@/lib/estimation/actions";
+import type { CalculatorFormValues } from "@/lib/estimation/validation";
+import { ArrowRightIcon, AlertTriangleIcon } from "../ui/icons";
 
 type Mode = "calculadora" | "analizador";
 
+export interface RegionOption {
+  slug: string;
+  name: string;
+}
+
+export interface MaterialLevelOption {
+  slug: string;
+  name: string;
+  description: string | null;
+}
+
 interface State {
-  systemType: SystemType;
+  systemType: CalculatorFormValues["systemType"];
+  materialLevel: CalculatorFormValues["materialLevel"];
   potenciaKw: number;
   superficieAyuda: boolean;
   superficieM2: number;
   muchoVidrio: boolean;
-  retiradaEquipo: RetiradaEquipo;
+  retiradaEquipo: CalculatorFormValues["retiradaEquipo"];
   metrosLineaFrigorificaExtra: number;
   instalacionElectricaDedicada: boolean;
   canaletaVistaMetros: number;
   necesitaBombaCondensados: boolean;
   accesoDificil: boolean;
-  zona: ZonaPrecio;
-  gama: Gama;
+  regionSlug: string | null;
+  viviendaParticularMasDeDosAnos: boolean;
   quiereComparar: boolean;
   presupuestoTotal: number;
   presupuestoEquipo: number;
@@ -36,6 +48,7 @@ interface State {
 
 const INITIAL: State = {
   systemType: "split-1x1",
+  materialLevel: "media",
   potenciaKw: 3.5,
   superficieAyuda: false,
   superficieM2: 20,
@@ -46,8 +59,8 @@ const INITIAL: State = {
   canaletaVistaMetros: 0,
   necesitaBombaCondensados: false,
   accesoDificil: false,
-  zona: "resto-espana",
-  gama: "media",
+  regionSlug: null,
+  viviendaParticularMasDeDosAnos: true,
   quiereComparar: false,
   presupuestoTotal: 0,
   presupuestoEquipo: 0,
@@ -55,9 +68,19 @@ const INITIAL: State = {
   presupuestoMateriales: 0,
 };
 
-export function Wizard({ mode }: { mode: Mode }) {
+export function Wizard({
+  mode,
+  regions,
+  materialLevels,
+}: {
+  mode: Mode;
+  regions: RegionOption[];
+  materialLevels: MaterialLevelOption[];
+}) {
   const router = useRouter();
   const [step, setStep] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [state, setState] = useState<State>(() =>
     mode === "analizador" ? { ...INITIAL, quiereComparar: true } : INITIAL,
   );
@@ -77,39 +100,48 @@ export function Wizard({ mode }: { mode: Mode }) {
     setStep((s) => Math.max(1, s - 1));
   }
 
-  function finish() {
-    const input: CalculatorInput = {
+  async function finish() {
+    setSubmitting(true);
+    setError(null);
+
+    const formValues: CalculatorFormValues = {
       systemType: state.systemType,
-      gama: state.gama,
+      materialLevel: state.materialLevel,
       potenciaKw: state.potenciaKw,
-      metrosLineaFrigorificaExtra: state.metrosLineaFrigorificaExtra,
       retiradaEquipo: state.retiradaEquipo,
-      instalacionElectricaDedicada: state.instalacionElectricaDedicada,
+      metrosLineaFrigorificaExtra: state.metrosLineaFrigorificaExtra,
       canaletaVistaMetros: state.canaletaVistaMetros,
       necesitaBombaCondensados: state.necesitaBombaCondensados,
+      instalacionElectricaDedicada: state.instalacionElectricaDedicada,
       accesoDificil: state.accesoDificil,
-      zona: state.zona,
+      regionSlug: state.regionSlug,
+      clientePersonaFisicaUsoParticular: state.viviendaParticularMasDeDosAnos,
+      viviendaMasDeDosAnos: state.viviendaParticularMasDeDosAnos,
     };
 
     if (state.quiereComparar && state.presupuestoTotal > 0) {
-      const declared: DeclaredBudget = {
+      const result = await compareBudgetAction(formValues, {
         total: state.presupuestoTotal,
         equipo: state.presupuestoEquipo || undefined,
         instalacionManoObra: state.presupuestoInstalacion || undefined,
         materialesExtras: state.presupuestoMateriales || undefined,
-      };
-      // Se codifica el RESULTADO ya calculado (no el input crudo): así, si la
-      // metodología cambia más adelante, un enlace ya compartido sigue
-      // mostrando exactamente lo que se calculó en su momento.
-      const result = analyzeBudget(input, declared);
-      const id = encodeState(result);
-      router.push(`/comparar/${id}`);
+      });
+      if (!result.ok || !result.data) {
+        setError(result.error ?? "No se ha podido comparar el presupuesto.");
+        setSubmitting(false);
+        return;
+      }
+      router.push(`/comparar/${result.data.userBudgetId}`);
       return;
     }
 
-    const result = calculateEstimation(input);
-    const id = encodeState(result);
-    router.push(`/resultado/${id}`);
+    const result = await calculateEstimateAction(formValues);
+    if (!result.ok || !result.data) {
+      setError(result.error ?? "No se ha podido calcular la estimación.");
+      setSubmitting(false);
+      return;
+    }
+    router.push(`/resultado/${result.data.estimateId}`);
   }
 
   return (
@@ -239,21 +271,47 @@ export function Wizard({ mode }: { mode: Mode }) {
       )}
 
       {step === 3 && (
-        <div>
-          <h2 className="text-xl font-bold text-neutral-950">Ubicación</h2>
-          <p className="mt-1 text-sm text-neutral-600">
-            La mano de obra puede variar algo según la zona, aunque la evidencia de la que disponemos es limitada.
-          </p>
-          <div className="mt-6">
-            <RadioCardGroup
-              name="zona"
-              value={state.zona}
-              onChange={(v) => update("zona", v)}
-              options={[
-                { value: "resto-espana", title: "Resto de España" },
-                { value: "madrid-cataluna", title: "Madrid o Cataluña", description: "Ajuste orientativo, señal de mercado débil" },
-              ]}
-            />
+        <div className="space-y-8">
+          <div>
+            <h2 className="text-xl font-bold text-neutral-950">Ubicación</h2>
+            <p className="mt-1 text-sm text-neutral-600">
+              La mano de obra puede variar algo según la zona, aunque la evidencia de la que disponemos es limitada
+              (solo hay señal para Madrid y Cataluña).
+            </p>
+            <select
+              value={state.regionSlug ?? ""}
+              onChange={(e) => update("regionSlug", e.target.value || null)}
+              className="mt-4 w-full max-w-sm rounded-lg border border-neutral-200 px-3 py-2.5 text-neutral-950 focus:border-brand-500 focus:outline-none"
+            >
+              <option value="">Prefiero no indicarlo</option>
+              {regions.map((r) => (
+                <option key={r.slug} value={r.slug}>
+                  {r.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <FieldLabel hint="Determina si tu instalación podría beneficiarse del IVA reducido del 10% en la mano de obra (art. 91.Uno.2.10º Ley 37/1992). Si el equipo supera el 40% del presupuesto, no aplica igualmente.">
+              ¿Es tu vivienda habitual, de uso particular, y tiene más de 2 años?
+            </FieldLabel>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => update("viviendaParticularMasDeDosAnos", true)}
+                className={`rounded-lg border px-4 py-2 text-sm font-semibold ${state.viviendaParticularMasDeDosAnos ? "border-brand-600 bg-brand-50 text-brand-800" : "border-neutral-200 text-neutral-600"}`}
+              >
+                Sí
+              </button>
+              <button
+                type="button"
+                onClick={() => update("viviendaParticularMasDeDosAnos", false)}
+                className={`rounded-lg border px-4 py-2 text-sm font-semibold ${!state.viviendaParticularMasDeDosAnos ? "border-brand-600 bg-brand-50 text-brand-800" : "border-neutral-200 text-neutral-600"}`}
+              >
+                No / no lo sé
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -264,14 +322,10 @@ export function Wizard({ mode }: { mode: Mode }) {
           <p className="mt-1 text-sm text-neutral-600">Esto es lo que más hace variar el precio del equipo en sí.</p>
           <div className="mt-6">
             <RadioCardGroup
-              name="gama"
-              value={state.gama}
-              onChange={(v) => update("gama", v)}
-              options={[
-                { value: "economica", title: "Económica", description: "Marca genérica, eficiencia básica" },
-                { value: "media", title: "Media", description: "Buena relación calidad-precio, la más habitual" },
-                { value: "premium", title: "Premium", description: "Alta eficiencia, marcas de gama alta, bajo ruido" },
-              ]}
+              name="materialLevel"
+              value={state.materialLevel}
+              onChange={(v) => update("materialLevel", v)}
+              options={materialLevels.map((m) => ({ value: m.slug as State["materialLevel"], title: m.name, description: m.description ?? undefined }))}
             />
           </div>
         </div>
@@ -351,11 +405,17 @@ export function Wizard({ mode }: { mode: Mode }) {
             Hemos recogido las características de tu instalación
             {state.quiereComparar ? " y el presupuesto que has recibido" : ""}. Pulsa el botón para ver tu resultado.
           </p>
+          {error && (
+            <div className="mt-4 flex gap-2 rounded-lg bg-critical-bg p-3 text-sm text-critical-text">
+              <AlertTriangleIcon className="mt-0.5 size-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
         </div>
       )}
 
       <div className="mt-8 flex justify-between border-t border-neutral-100 pt-6">
-        <Button type="button" variant="ghost" onClick={goBack} disabled={step === 1}>
+        <Button type="button" variant="ghost" onClick={goBack} disabled={step === 1 || submitting}>
           Atrás
         </Button>
         {step < totalSteps ? (
@@ -367,8 +427,9 @@ export function Wizard({ mode }: { mode: Mode }) {
             Siguiente <ArrowRightIcon />
           </Button>
         ) : (
-          <Button type="button" onClick={finish}>
-            {state.quiereComparar ? "Comparar mi presupuesto" : "Ver mi estimación"} <ArrowRightIcon />
+          <Button type="button" onClick={finish} disabled={submitting}>
+            {submitting ? "Calculando…" : state.quiereComparar ? "Comparar mi presupuesto" : "Ver mi estimación"}
+            {!submitting && <ArrowRightIcon />}
           </Button>
         )}
       </div>
