@@ -9,8 +9,8 @@ import { afterAll, describe, expect, it } from "vitest";
 import { evaluateEstimate } from "./engine";
 import { evaluateRite } from "./rite";
 import {
+  getComparisonForDisplay,
   getEstimateForDisplay,
-  getUserBudgetForDisplay,
   loadPricingContext,
   persistEstimate,
   persistUserBudget,
@@ -78,13 +78,20 @@ describe.skipIf(!hasDatabase)("repository (integración con Postgres real)", () 
     expect(display!.estimate.totalMin).toBeLessThanOrEqual(display!.estimate.totalMax);
 
     const rite = evaluateRite(form.potenciaKw);
-    const comparison = compareBudget(evaluation, { total: evaluation.total.max + 300 }, { riteSuperaUmbral: rite.superaUmbral });
-    const userBudgetId = await persistUserBudget({ estimateId, declared: { total: evaluation.total.max + 300 }, comparison });
+    const declared = {
+      total: evaluation.total.max + 300,
+      description: "Presupuesto de prueba de integración",
+      lines: [{ label: "Equipo Mitsubishi", category: "equipo" as const, amount: 700 }],
+    };
+    const comparison = compareBudget(evaluation, declared, { riteSuperaUmbral: rite.superaUmbral });
+    const comparisonId = await persistUserBudget({ estimateId, declared, comparison });
 
-    const budgetDisplay = await getUserBudgetForDisplay(userBudgetId);
-    expect(budgetDisplay).not.toBeNull();
-    expect(budgetDisplay!.budget.verdict).toBe("por_encima");
-    expect(budgetDisplay!.estimate.estimate.id).toBe(estimateId);
+    const comparisonDisplay = await getComparisonForDisplay(comparisonId);
+    expect(comparisonDisplay).not.toBeNull();
+    expect(comparisonDisplay!.budgets).toHaveLength(1);
+    expect(comparisonDisplay!.budgets[0].budget.verdict).toBe("por_encima");
+    expect(comparisonDisplay!.budgets[0].lines).toHaveLength(1);
+    expect(comparisonDisplay!.estimate.estimate.id).toBe(estimateId);
   });
 });
 

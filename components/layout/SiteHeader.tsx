@@ -4,7 +4,7 @@ import { ShieldIcon } from "../ui/icons";
 
 export function SiteHeader() {
   return (
-    <header className="border-b border-neutral-200 bg-white">
+    <header className="border-b border-neutral-200 bg-white print:hidden">
       <Container className="flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-bold text-brand-900">
           <ShieldIcon className="size-6 text-brand-600" />

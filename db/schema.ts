@@ -45,6 +45,8 @@ export const budgetLineStatusEnum = pgEnum("budget_line_status", [
   "no_declarado",
 ]);
 
+export const budgetLineCategoryEnum = pgEnum("budget_line_category", ["equipo", "mano_obra", "extras", "otros"]);
+
 const money = (name: string) => numeric(name, { precision: 10, scale: 2, mode: "number" });
 const pct = (name: string) => numeric(name, { precision: 5, scale: 4, mode: "number" });
 const timestamps = {
@@ -303,11 +305,30 @@ export const estimateRanges = pgTable("estimate_ranges", {
   max: money("max").notNull(),
 });
 
-export const userBudgets = pgTable("user_budgets", {
+/**
+ * Agrupa uno o más `user_budgets` contra la MISMA `Estimate`. En el MVP
+ * siempre hay un único presupuesto por comparación, pero el id de esta
+ * tabla (no el de `user_budgets`) es el que se usa en la URL pública
+ * (`/comparar/[id]`) precisamente para que añadir un segundo y un tercer
+ * presupuesto ("compara 3 presupuestos") no rompa enlaces ya compartidos.
+ */
+export const budgetComparisons = pgTable("budget_comparisons", {
   id: uuid("id").primaryKey().defaultRandom(),
   estimateId: uuid("estimate_id")
     .notNull()
     .references(() => estimates.id),
+  ...timestamps,
+});
+
+export const userBudgets = pgTable("user_budgets", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  comparisonId: uuid("comparison_id")
+    .notNull()
+    .references(() => budgetComparisons.id),
+  /** Para cuando haya varios en la misma comparación (p. ej. "Presupuesto de Climas Pérez"). */
+  label: text("label"),
+  /** Descripción libre que el usuario pega o escribe del presupuesto recibido. */
+  description: text("description"),
   total: money("total").notNull(),
   verdict: verdictEnum("verdict").notNull(),
   deviationPct: pct("deviation_pct").notNull(),
@@ -315,6 +336,19 @@ export const userBudgets = pgTable("user_budgets", {
   ...timestamps,
 });
 
+/** Partidas tal y como las escribe el usuario (input crudo, no calculado). */
+export const userBudgetLines = pgTable("user_budget_lines", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userBudgetId: uuid("user_budget_id")
+    .notNull()
+    .references(() => userBudgets.id),
+  label: text("label").notNull(),
+  category: budgetLineCategoryEnum("category").notNull(),
+  amount: money("amount").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
+/** Resumen calculado por categoría (declarado vs. esperado) — se deriva de `user_budget_lines`. */
 export const userBudgetItems = pgTable("user_budget_items", {
   id: uuid("id").primaryKey().defaultRandom(),
   userBudgetId: uuid("user_budget_id")

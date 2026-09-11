@@ -1,8 +1,9 @@
 import type { DeclaredBudgetValues } from "./validation";
-import type { EvaluationResult } from "./types";
+import type { EstimateRangeGroup, EvaluationResult } from "./types";
 
 export type Verdict = "dentro_de_rango" | "por_encima" | "por_debajo";
 export type LineStatus = "dentro" | "por_encima" | "no_declarado";
+export type BudgetLineCategory = "equipo" | "mano_obra" | "extras" | "otros";
 
 export interface BudgetLineVerdict {
   groupKey: string;
@@ -13,11 +14,19 @@ export interface BudgetLineVerdict {
   status: LineStatus;
 }
 
+export interface AlertSignal {
+  key: string;
+  message: string;
+}
+
 export interface ComparisonResult {
   verdict: Verdict;
   deviationPct: number;
   deviationAbsolute: number;
   lineVerdicts: BudgetLineVerdict[];
+  /** Categorías esperadas para las que el usuario no ha declarado ninguna partida. */
+  partidasAusentes: string[];
+  senalesDeAlerta: AlertSignal[];
   posiblesRazones: string[];
   preguntasRecomendadas: string[];
 }
@@ -51,17 +60,26 @@ const GROUP_LABELS: Record<string, string> = {
   extras: "Extras",
 };
 
-const DECLARED_FIELD_BY_GROUP: Record<string, keyof DeclaredBudgetValues> = {
+/** A qué categoría de partida declarada corresponde cada grupo de la estimación. */
+const CATEGORY_BY_GROUP: Record<string, BudgetLineCategory> = {
   equipo: "equipo",
   paquete_conductos: "equipo",
-  mano_obra: "instalacionManoObra",
-  extras: "materialesExtras",
+  mano_obra: "mano_obra",
+  extras: "extras",
 };
 
 function verdictFromRange(total: number, range: { min: number; max: number }): { verdict: Verdict; deviationPct: number } {
   if (total > range.max) return { verdict: "por_encima", deviationPct: (total - range.max) / range.max };
   if (total < range.min) return { verdict: "por_debajo", deviationPct: (range.min - total) / range.min };
   return { verdict: "dentro_de_rango", deviationPct: 0 };
+}
+
+function sumByCategory(lines: DeclaredBudgetValues["lines"]): Record<BudgetLineCategory, number> {
+  const sums: Record<BudgetLineCategory, number> = { equipo: 0, mano_obra: 0, extras: 0, otros: 0 };
+  for (const line of lines) {
+    sums[line.category] += line.amount;
+  }
+  return sums;
 }
 
 export function compareBudget(
@@ -78,20 +96,31 @@ export function compareBudget(
         ? totalRange.min - declared.total
         : 0;
 
+  const categorySums = sumByCategory(declared.lines);
+  const categoriesDeclared = new Set(declared.lines.map((l) => l.category));
+
   const lineVerdicts: BudgetLineVerdict[] = [];
+  const partidasAusentes: string[] = [];
+
   for (const groupKey of ["equipo", "paquete_conductos", "mano_obra", "extras"]) {
     const range = evaluation.ranges.find((r) => r.groupKey === groupKey);
     if (!range) continue;
-    const field = DECLARED_FIELD_BY_GROUP[groupKey];
-    const declaredValue = declared[field];
+    const category = CATEGORY_BY_GROUP[groupKey];
+    const hasDeclared = categoriesDeclared.has(category);
+    const declaredValue = hasDeclared ? categorySums[category] : null;
+
     lineVerdicts.push({
       groupKey,
       label: GROUP_LABELS[groupKey] ?? groupKey,
-      declared: declaredValue ?? null,
+      declared: declaredValue,
       expectedMin: range.min,
       expectedMax: range.max,
-      status: declaredValue === undefined ? "no_declarado" : declaredValue > range.max ? "por_encima" : "dentro",
+      status: declaredValue === null ? "no_declarado" : declaredValue > range.max ? "por_encima" : "dentro",
     });
+
+    if (!hasDeclared) {
+      partidasAusentes.push(GROUP_LABELS[groupKey] ?? groupKey);
+    }
   }
 
   return {
@@ -99,12 +128,49 @@ export function compareBudget(
     deviationPct,
     deviationAbsolute,
     lineVerdicts,
+    partidasAusentes,
+    senalesDeAlerta: detectAlertSignals({ total: declared.total, lines: declared.lines }),
     posiblesRazones: posiblesRazonesFor(verdict),
     preguntasRecomendadas: preguntasRecomendadasFor({
       riteSuperaUmbral: options.riteSuperaUmbral,
       materialesSharePctAlto: evaluation.vat.materialesSharePct > 0.4,
     }),
   };
+}
+
+/**
+ * Comprobaciones sobre los datos que el propio usuario ha introducido —
+ * distinto de "posiblesRazones" (que explica una diferencia frente a
+ * nuestra estimación). Aquí solo se señala algo cuando los números que el
+ * usuario ha escrito son internamente inconsistentes, nunca se cuestiona
+ * la honestidad del profesional.
+ */
+export function detectAlertSignals(args: { total: number; lines: DeclaredBudgetValues["lines"] }): AlertSignal[] {
+  const signals: AlertSignal[] = [];
+  if (args.lines.length === 0 || args.total <= 0) return signals;
+
+  const sumLines = args.lines.reduce((sum, l) => sum + l.amount, 0);
+  const diffPct = Math.abs(sumLines - args.total) / args.total;
+  if (diffPct > 0.05) {
+    signals.push({
+      key: "total-no-cuadra",
+      message:
+        "El total indicado no coincide con la suma de las partidas que has introducido. Puede que falte alguna " +
+        "partida por reflejar, o que el total incluya un descuento o un concepto que no has desglosado.",
+    });
+  }
+
+  const otros = args.lines.filter((l) => l.category === "otros").reduce((sum, l) => sum + l.amount, 0);
+  if (otros / args.total > 0.3) {
+    signals.push({
+      key: "otros-alto",
+      message:
+        "Una parte importante del presupuesto está en partidas sin categorizar con claridad. Conviene pedir que " +
+        "se detalle exactamente a qué corresponde.",
+    });
+  }
+
+  return signals;
 }
 
 /**
@@ -121,7 +187,7 @@ export function posiblesRazonesFor(verdict: Verdict): string[] {
 }
 
 /** Reconstruye el reparto de materiales a partir de los rangos agregados ya persistidos. */
-export function materialesSharePctFromRanges(ranges: { groupKey: string; min: number; max: number }[]): number {
+export function materialesSharePctFromRanges(ranges: EstimateRangeGroup[]): number {
   const componentGroups = ["equipo", "mano_obra", "extras", "paquete_conductos"];
   const equipo = ranges.find((r) => r.groupKey === "equipo" || r.groupKey === "paquete_conductos");
   const preMultiplierMid = ranges

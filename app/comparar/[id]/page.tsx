@@ -7,8 +7,10 @@ import { Badge, type Tone } from "@/components/ui/Badge";
 import { LinkButton } from "@/components/ui/Button";
 import { RangeBar } from "@/components/result/RangeBar";
 import { Breakdown } from "@/components/result/Breakdown";
-import { getUserBudgetForDisplay } from "@/lib/estimation/repository";
-import { materialesSharePctFromRanges, posiblesRazonesFor, preguntasRecomendadasFor } from "@/lib/estimation/compare";
+import { ShareActions } from "@/components/result/ShareActions";
+import { getComparisonForDisplay } from "@/lib/estimation/repository";
+import { detectAlertSignals, materialesSharePctFromRanges, posiblesRazonesFor, preguntasRecomendadasFor } from "@/lib/estimation/compare";
+import { buildComparisonSummaryText } from "@/lib/estimation/summary";
 import { formatEUR, formatPct } from "@/lib/format";
 import { AlertTriangleIcon } from "@/components/ui/icons";
 
@@ -27,8 +29,8 @@ const VERDICT_COPY: Record<string, { tone: Tone; titulo: string; explicacion: st
     tone: "warning",
     titulo: "Por encima del rango estimado",
     explicacion:
-      "Esto no significa necesariamente que el presupuesto sea incorrecto. Puede existir una diferencia por " +
-      "materiales, dificultad, garantías, desplazamiento u otros factores que esta calculadora no ve.",
+      "Esto no significa necesariamente que el presupuesto sea incorrecto. Puede existir una diferencia razonable " +
+      "por materiales, dificultad, garantías, desplazamiento u otros factores que esta calculadora no ve.",
   },
   por_debajo: {
     tone: "info",
@@ -41,14 +43,17 @@ const VERDICT_COPY: Record<string, { tone: Tone; titulo: string; explicacion: st
 
 export default async function CompararPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const data = await getUserBudgetForDisplay(id);
+  const data = await getComparisonForDisplay(id);
 
   if (!data) {
     notFound();
   }
 
-  const { budget, budgetItems, estimate: estimateData } = data;
-  const { estimate, items, ranges, methodologyVersion } = estimateData;
+  // El MVP siempre tiene un único presupuesto por comparación; el modelo de
+  // datos ya admite varios (`data.budgets`) para cuando se construya
+  // "compara 3 presupuestos" — este `[0]` es el único punto que cambiaría.
+  const { budget, lines, items: budgetItems } = data.budgets[0];
+  const { estimate, items, ranges, methodologyVersion } = data.estimate;
   const copy = VERDICT_COPY[budget.verdict];
 
   const potenciaKw = (estimate.inputs as { quantities?: { potenciaKw?: number } }).quantities?.potenciaKw;
@@ -56,10 +61,36 @@ export default async function CompararPage({ params }: { params: Promise<{ id: s
   const materialesSharePctAlto = materialesSharePctFromRanges(ranges) > 0.4;
   const posiblesRazones = posiblesRazonesFor(budget.verdict);
   const preguntasRecomendadas = preguntasRecomendadasFor({ riteSuperaUmbral, materialesSharePctAlto });
+  const partidasAusentes = budgetItems.filter((i) => i.status === "no_declarado").map((i) => i.label);
+  const senalesDeAlerta = detectAlertSignals({
+    total: budget.total,
+    lines: lines.map((l) => ({ label: l.label, category: l.category, amount: l.amount })),
+  });
+
+  const summaryText = buildComparisonSummaryText({
+    totalRange: { min: estimate.totalMin, max: estimate.totalMax },
+    declaredTotal: budget.total,
+    verdict: budget.verdict,
+    deviationAbsolute: budget.deviationAbsolute,
+    deviationPct: budget.deviationPct,
+    lineVerdicts: budgetItems.map((i) => ({
+      groupKey: i.groupKey,
+      label: i.label,
+      declared: i.status === "no_declarado" ? null : i.declaredAmount,
+      expectedMin: i.expectedMin,
+      expectedMax: i.expectedMax,
+      status: i.status,
+    })),
+    partidasAusentes,
+    senalesDeAlerta,
+    posiblesRazones,
+    preguntasRecomendadas,
+    url: `https://www.presupuestoclaro.es/comparar/${id}`,
+  });
 
   return (
     <Container className="max-w-3xl py-12">
-      <nav aria-label="Breadcrumb" className="text-sm text-neutral-500">
+      <nav aria-label="Breadcrumb" className="text-sm text-neutral-500 print:hidden">
         <Link href="/" className="hover:text-brand-700">
           Inicio
         </Link>{" "}
@@ -70,10 +101,19 @@ export default async function CompararPage({ params }: { params: Promise<{ id: s
         / Comparación
       </nav>
 
-      <h1 className="mt-3 text-2xl font-bold text-neutral-950 sm:text-3xl">¿Es razonable tu presupuesto?</h1>
+      <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
+        <h1 className="text-2xl font-bold text-neutral-950 sm:text-3xl">¿Es razonable tu presupuesto?</h1>
+      </div>
+      <div className="mt-4">
+        <ShareActions summaryText={summaryText} fileName="resumen-presupuesto-aire-acondicionado.txt" />
+      </div>
 
       <Card className="mt-6">
         <Badge tone={copy.tone}>{copy.titulo}</Badge>
+
+        {budget.description && (
+          <p className="mt-3 rounded-lg bg-neutral-50 p-3 text-sm text-neutral-600">&ldquo;{budget.description}&rdquo;</p>
+        )}
 
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
@@ -105,6 +145,22 @@ export default async function CompararPage({ params }: { params: Promise<{ id: s
         <p className="mt-2 text-neutral-700">{copy.explicacion}</p>
       </Card>
 
+      {senalesDeAlerta.length > 0 && (
+        <Card className="mt-6 border-warning-bg bg-warning-bg/40">
+          <div className="flex gap-3">
+            <AlertTriangleIcon className="mt-0.5 size-5 shrink-0 text-warning-text" />
+            <div>
+              <h2 className="font-bold text-neutral-950">Señales a revisar</h2>
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-neutral-700">
+                {senalesDeAlerta.map((s) => (
+                  <li key={s.key}>{s.message}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {posiblesRazones.length > 0 && (
         <Card className="mt-6">
           <h2 className="font-bold text-neutral-950">Posibles razones de la diferencia</h2>
@@ -116,29 +172,47 @@ export default async function CompararPage({ params }: { params: Promise<{ id: s
         </Card>
       )}
 
-      {budgetItems.length > 0 && (
+      {lines.length > 0 && (
         <Card className="mt-6">
-          <h2 className="font-bold text-neutral-950">Partidas declaradas vs. esperadas</h2>
+          <h2 className="font-bold text-neutral-950">Partidas que has indicado</h2>
           <div className="mt-4 divide-y divide-neutral-100">
-            {budgetItems.map((li) => (
-              <div key={li.groupKey} className="flex items-center justify-between gap-4 py-3">
-                <div>
-                  <p className="font-medium text-neutral-950">{li.label}</p>
-                  <p className="text-xs text-neutral-500">
-                    Esperado: {formatEUR(li.expectedMin)} – {formatEUR(li.expectedMax)}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold text-neutral-950">
-                    {li.status === "no_declarado" ? "No indicado" : formatEUR(li.declaredAmount)}
-                  </p>
-                  {li.status === "por_encima" && <Badge tone="warning">Revisar esta partida</Badge>}
-                </div>
+            {lines.map((line) => (
+              <div key={line.id} className="flex items-center justify-between gap-4 py-2 text-sm">
+                <span className="text-neutral-950">{line.label}</span>
+                <span className="font-semibold text-neutral-950">{formatEUR(line.amount)}</span>
               </div>
             ))}
           </div>
         </Card>
       )}
+
+      <Card className="mt-6">
+        <h2 className="font-bold text-neutral-950">Partidas declaradas vs. esperadas</h2>
+        <div className="mt-4 divide-y divide-neutral-100">
+          {budgetItems.map((li) => (
+            <div key={li.groupKey} className="flex items-center justify-between gap-4 py-3">
+              <div>
+                <p className="font-medium text-neutral-950">{li.label}</p>
+                <p className="text-xs text-neutral-500">
+                  Esperado: {formatEUR(li.expectedMin)} – {formatEUR(li.expectedMax)}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="font-semibold text-neutral-950">
+                  {li.status === "no_declarado" ? "No indicado" : formatEUR(li.declaredAmount)}
+                </p>
+                {li.status === "por_encima" && <Badge tone="warning">Revisar esta partida</Badge>}
+              </div>
+            </div>
+          ))}
+        </div>
+        {partidasAusentes.length > 0 && (
+          <p className="mt-4 text-sm text-neutral-500">
+            No has indicado ninguna partida de: {partidasAusentes.join(", ")}. Puede que el presupuesto la incluya
+            igualmente, solo que no la has desglosado aquí.
+          </p>
+        )}
+      </Card>
 
       <Card className="mt-6">
         <h2 className="font-bold text-neutral-950">Desglose de la estimación</h2>
@@ -172,7 +246,7 @@ export default async function CompararPage({ params }: { params: Promise<{ id: s
         </Card>
       )}
 
-      <Card className="mt-6">
+      <Card className="mt-6 print:hidden">
         <h2 className="font-bold text-neutral-950">Siguiente paso</h2>
         <p className="mt-2 text-neutral-700">
           Nunca es buena idea decidir solo por el precio. Usa las preguntas de arriba con tu instalador antes de

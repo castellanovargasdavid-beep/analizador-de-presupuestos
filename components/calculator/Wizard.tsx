@@ -8,10 +8,25 @@ import { StepIndicator } from "../ui/StepIndicator";
 import { CheckboxRow, FieldLabel, NumberField, RadioCardGroup, TextField } from "../ui/FormControls";
 import { estimatePotenciaKwFromSuperficie } from "@/lib/estimation/sizing";
 import { calculateEstimateAction, compareBudgetAction } from "@/lib/estimation/actions";
-import type { CalculatorFormValues } from "@/lib/estimation/validation";
+import type { CalculatorFormValues, DeclaredBudgetLineValues } from "@/lib/estimation/validation";
 import { ArrowRightIcon, AlertTriangleIcon } from "../ui/icons";
 
 type Mode = "calculadora" | "analizador";
+
+interface PartidaRow extends DeclaredBudgetLineValues {
+  rowId: string;
+}
+
+const CATEGORIA_OPTIONS: { value: DeclaredBudgetLineValues["category"]; label: string }[] = [
+  { value: "equipo", label: "Equipo" },
+  { value: "mano_obra", label: "Mano de obra / instalación" },
+  { value: "extras", label: "Materiales y extras" },
+  { value: "otros", label: "Otros / no lo sé" },
+];
+
+function newPartida(): PartidaRow {
+  return { rowId: Math.random().toString(36).slice(2), label: "", category: "equipo", amount: 0 };
+}
 
 export interface RegionOption {
   slug: string;
@@ -41,9 +56,8 @@ interface State {
   viviendaParticularMasDeDosAnos: boolean;
   quiereComparar: boolean;
   presupuestoTotal: number;
-  presupuestoEquipo: number;
-  presupuestoInstalacion: number;
-  presupuestoMateriales: number;
+  descripcion: string;
+  partidas: PartidaRow[];
 }
 
 const INITIAL: State = {
@@ -63,9 +77,8 @@ const INITIAL: State = {
   viviendaParticularMasDeDosAnos: true,
   quiereComparar: false,
   presupuestoTotal: 0,
-  presupuestoEquipo: 0,
-  presupuestoInstalacion: 0,
-  presupuestoMateriales: 0,
+  descripcion: "",
+  partidas: [],
 };
 
 export function Wizard({
@@ -122,16 +135,17 @@ export function Wizard({
     if (state.quiereComparar && state.presupuestoTotal > 0) {
       const result = await compareBudgetAction(formValues, {
         total: state.presupuestoTotal,
-        equipo: state.presupuestoEquipo || undefined,
-        instalacionManoObra: state.presupuestoInstalacion || undefined,
-        materialesExtras: state.presupuestoMateriales || undefined,
+        description: state.descripcion.trim() || undefined,
+        lines: state.partidas
+          .filter((p) => p.label.trim().length > 0)
+          .map((p) => ({ label: p.label.trim(), category: p.category, amount: p.amount })),
       });
       if (!result.ok || !result.data) {
         setError(result.error ?? "No se ha podido comparar el presupuesto.");
         setSubmitting(false);
         return;
       }
-      router.push(`/comparar/${result.data.userBudgetId}`);
+      router.push(`/comparar/${result.data.comparisonId}`);
       return;
     }
 
@@ -356,7 +370,7 @@ export function Wizard({
           )}
 
           {state.quiereComparar && (
-            <div className="mt-6 space-y-4">
+            <div className="mt-6 space-y-6">
               <div>
                 <FieldLabel>Precio total del presupuesto que te han dado</FieldLabel>
                 <TextField
@@ -366,32 +380,94 @@ export function Wizard({
                   suffix="€"
                 />
               </div>
-              <p className="text-sm font-semibold text-neutral-700">Desglose (opcional, mejora la comparación)</p>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div>
-                  <FieldLabel>Equipo</FieldLabel>
-                  <TextField
-                    value={state.presupuestoEquipo ? String(state.presupuestoEquipo) : ""}
-                    onChange={(v) => update("presupuestoEquipo", Number(v.replace(/[^0-9.]/g, "")) || 0)}
-                    suffix="€"
-                  />
+
+              <div>
+                <FieldLabel hint="Pega el texto del presupuesto o descríbelo con tus palabras. Opcional, pero ayuda a interpretar el resto.">
+                  Descripción del presupuesto
+                </FieldLabel>
+                <textarea
+                  value={state.descripcion}
+                  onChange={(e) => update("descripcion", e.target.value)}
+                  rows={3}
+                  placeholder='Ej. "Instalación split Mitsubishi 3000 fg, incluye retirada del equipo antiguo..."'
+                  className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-neutral-950 focus:border-brand-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <FieldLabel hint="Añade las partidas tal como aparecen en el presupuesto. Cuantas más indiques, mejor podremos comparar.">
+                  Partidas principales (opcional, mejora la comparación)
+                </FieldLabel>
+                <div className="space-y-3">
+                  {state.partidas.map((partida) => (
+                    <div key={partida.rowId} className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-3 sm:flex-row sm:items-center">
+                      <input
+                        type="text"
+                        value={partida.label}
+                        onChange={(e) =>
+                          update(
+                            "partidas",
+                            state.partidas.map((p) => (p.rowId === partida.rowId ? { ...p, label: e.target.value } : p)),
+                          )
+                        }
+                        placeholder="Ej. Unidad interior + exterior"
+                        className="flex-1 rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-950 focus:border-brand-500 focus:outline-none"
+                      />
+                      <select
+                        value={partida.category}
+                        onChange={(e) =>
+                          update(
+                            "partidas",
+                            state.partidas.map((p) =>
+                              p.rowId === partida.rowId
+                                ? { ...p, category: e.target.value as DeclaredBudgetLineValues["category"] }
+                                : p,
+                            ),
+                          )
+                        }
+                        className="rounded-lg border border-neutral-200 px-2 py-2 text-sm text-neutral-950 focus:border-brand-500 focus:outline-none"
+                      >
+                        {CATEGORIA_OPTIONS.map((c) => (
+                          <option key={c.value} value={c.value}>
+                            {c.label}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={partida.amount ? String(partida.amount) : ""}
+                        onChange={(e) =>
+                          update(
+                            "partidas",
+                            state.partidas.map((p) =>
+                              p.rowId === partida.rowId
+                                ? { ...p, amount: Number(e.target.value.replace(/[^0-9.]/g, "")) || 0 }
+                                : p,
+                            ),
+                          )
+                        }
+                        placeholder="€"
+                        className="w-24 rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-950 focus:border-brand-500 focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => update("partidas", state.partidas.filter((p) => p.rowId !== partida.rowId))}
+                        className="text-sm font-semibold text-critical-text hover:underline"
+                        aria-label="Eliminar partida"
+                      >
+                        Quitar
+                      </button>
+                    </div>
+                  ))}
                 </div>
-                <div>
-                  <FieldLabel>Instalación / mano de obra</FieldLabel>
-                  <TextField
-                    value={state.presupuestoInstalacion ? String(state.presupuestoInstalacion) : ""}
-                    onChange={(v) => update("presupuestoInstalacion", Number(v.replace(/[^0-9.]/g, "")) || 0)}
-                    suffix="€"
-                  />
-                </div>
-                <div>
-                  <FieldLabel>Materiales / extras</FieldLabel>
-                  <TextField
-                    value={state.presupuestoMateriales ? String(state.presupuestoMateriales) : ""}
-                    onChange={(v) => update("presupuestoMateriales", Number(v.replace(/[^0-9.]/g, "")) || 0)}
-                    suffix="€"
-                  />
-                </div>
+                <button
+                  type="button"
+                  onClick={() => update("partidas", [...state.partidas, newPartida()])}
+                  className="mt-3 text-sm font-semibold text-brand-700 hover:underline"
+                >
+                  + Añadir partida
+                </button>
               </div>
             </div>
           )}

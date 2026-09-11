@@ -45,8 +45,20 @@ describe("calculatorFormSchema", () => {
 });
 
 describe("declaredBudgetSchema", () => {
-  it("acepta un presupuesto válido con desglose parcial", () => {
-    expect(declaredBudgetSchema.safeParse({ total: 1200, equipo: 700 }).success).toBe(true);
+  it("acepta un presupuesto sin partidas (solo el total)", () => {
+    expect(declaredBudgetSchema.safeParse({ total: 1200 }).success).toBe(true);
+  });
+
+  it("acepta un presupuesto con descripción y partidas", () => {
+    const result = declaredBudgetSchema.safeParse({
+      total: 1200,
+      description: "Split Mitsubishi con retirada de equipo antiguo",
+      lines: [
+        { label: "Equipo", category: "equipo", amount: 700 },
+        { label: "Instalación", category: "mano_obra", amount: 500 },
+      ],
+    });
+    expect(result.success).toBe(true);
   });
 
   it("rechaza un total negativo o cero", () => {
@@ -54,8 +66,33 @@ describe("declaredBudgetSchema", () => {
     expect(declaredBudgetSchema.safeParse({ total: -500 }).success).toBe(false);
   });
 
-  it("rechaza un desglose negativo aunque el total sea válido", () => {
-    expect(declaredBudgetSchema.safeParse({ total: 1000, equipo: -100 }).success).toBe(false);
+  it("rechaza una partida con importe negativo", () => {
+    const result = declaredBudgetSchema.safeParse({
+      total: 1000,
+      lines: [{ label: "Equipo", category: "equipo", amount: -100 }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rechaza una partida sin nombre", () => {
+    const result = declaredBudgetSchema.safeParse({
+      total: 1000,
+      lines: [{ label: "", category: "equipo", amount: 100 }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rechaza una categoría de partida desconocida", () => {
+    const result = declaredBudgetSchema.safeParse({
+      total: 1000,
+      lines: [{ label: "Equipo", category: "mano-de-obra-mal-escrito", amount: 100 }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rechaza más de 30 partidas", () => {
+    const lines = Array.from({ length: 31 }, (_, i) => ({ label: `Partida ${i}`, category: "otros" as const, amount: 10 }));
+    expect(declaredBudgetSchema.safeParse({ total: 1000, lines }).success).toBe(false);
   });
 
   it("rechaza un total absurdamente alto", () => {

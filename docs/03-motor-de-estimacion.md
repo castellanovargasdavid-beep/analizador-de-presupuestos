@@ -43,9 +43,56 @@ estimates -> estimate_items               (una fila persistida, calculada
                                             leer, así que un enlace
                                             compartido no cambia por debajo
                                             de los pies de quien lo recibió)
-user_budgets -> user_budget_items          (presupuesto declarado + veredicto
-                                            por partida)
+budget_comparisons -> user_budgets -> user_budget_lines   (partidas tal cual
+                                                            las escribe el
+                                                            usuario: label +
+                                                            categoría + importe)
+                                    -> user_budget_items   (resumen calculado
+                                                            por categoría vs.
+                                                            rango esperado)
 ```
+
+`budget_comparisons` agrupa uno o más `user_budgets` contra la MISMA
+`Estimate`. En el MVP (Analizador de Presupuestos) siempre hay un único
+presupuesto por comparación, pero **el id de `budget_comparisons` — no el
+de `user_budgets` — es el que se usa en `/comparar/[id]`**, precisamente
+para que "compara 3 presupuestos" (añadir un segundo y un tercer
+presupuesto a la misma comparación) no invalide un enlace ya compartido.
+`getComparisonForDisplay()` ya devuelve `budgets` como array por este
+motivo, aunque hoy siempre tenga longitud 1.
+
+`user_budget_lines` es el input crudo (lo que el usuario escribe: "Unidad
+interior + exterior Mitsubishi", categoría "equipo", 700€); `user_budget_items`
+es el resumen YA CALCULADO por categoría (suma de líneas de esa categoría
+vs. el rango esperado de esa misma categoría en la `Estimate`) — la misma
+distinción "número congelado vs. texto derivado" que ya regía para
+`posiblesRazones`/`preguntasRecomendadas` se aplica aquí: `partidasAusentes`
+y `senalesDeAlerta` (`lib/estimation/compare.ts`) se recalculan en el
+render a partir de `user_budget_lines` y `user_budget_items` ya persistidos,
+sin necesitar columnas propias.
+
+### Señales de alerta (no acusatorias)
+
+`detectAlertSignals()` solo comprueba consistencia interna de lo que el
+propio usuario ha escrito (el total no cuadra con la suma de las partidas;
+una parte grande del presupuesto está en la categoría "otros" sin
+categorizar) — nunca cuestiona la honestidad del profesional. El lenguaje
+está testeado explícitamente (`compare.test.ts`) para no contener
+"estafa"/"fraude"/"engañ-" en ningún mensaje.
+
+### Compartir y guardar (sin backend nuevo)
+
+- **Guardar**: ya es automático (Postgres, no la URL).
+- **Compartir enlace**: copia al portapapeles (`ShareActions.tsx`).
+- **Descargar resumen**: genera un `.txt` en el cliente
+  (`lib/estimation/summary.ts` + `Blob`), sin librería de PDF.
+- **Imprimir / guardar como PDF**: `window.print()` + CSS `print:hidden`
+  en cabecera/pie/CTAs, usando la función nativa del navegador en vez de
+  añadir una dependencia de generación de PDF.
+
+No se implementa OCR ni subida de PDF/imagen en este MVP — el campo
+`description` (texto libre) deja preparado el terreno para un "análisis
+automático" futuro sin comprometerse a construirlo ahora.
 
 `pricing_rules.version` + `valid_from`/`valid_to` dan el versionado: una
 `Estimate` referencia el id exacto de la regla con la que se calculó. Si
@@ -113,7 +160,7 @@ Preparado para un futuro CRUD sin rediseño:
 
 ## Tests (`lib/estimation/*.test.ts`, `npm test`)
 
-66 tests. Cobertura explícita de lo pedido:
+76 tests. Cobertura explícita de lo pedido:
 
 - Mínimos/máximos: el rango nunca se invierte (min ≤ max) en ninguna
   combinación de tipo de sistema × gama.

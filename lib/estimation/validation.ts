@@ -28,14 +28,23 @@ export const calculatorFormSchema = z.object({
 export type CalculatorFormValues = z.infer<typeof calculatorFormSchema>;
 
 const MAX_PRESUPUESTO = 1_000_000;
+const MAX_PARTIDAS = 30;
+
+export const budgetLineCategorySchema = z.enum(["equipo", "mano_obra", "extras", "otros"]);
+
+export const declaredBudgetLineSchema = z.object({
+  label: z.string().trim().min(1, "Ponle un nombre a la partida").max(200),
+  category: budgetLineCategorySchema,
+  amount: z.number().nonnegative("El importe no puede ser negativo").max(MAX_PRESUPUESTO),
+});
 
 export const declaredBudgetSchema = z.object({
   total: z.number().positive("El total debe ser mayor que 0").max(MAX_PRESUPUESTO, "Revisa el importe introducido"),
-  equipo: z.number().nonnegative().max(MAX_PRESUPUESTO).optional(),
-  instalacionManoObra: z.number().nonnegative().max(MAX_PRESUPUESTO).optional(),
-  materialesExtras: z.number().nonnegative().max(MAX_PRESUPUESTO).optional(),
+  description: z.string().trim().max(2000).optional(),
+  lines: z.array(declaredBudgetLineSchema).max(MAX_PARTIDAS, `Como mucho ${MAX_PARTIDAS} partidas`).default([]),
 });
 
+export type DeclaredBudgetLineValues = z.infer<typeof declaredBudgetLineSchema>;
 export type DeclaredBudgetValues = z.infer<typeof declaredBudgetSchema>;
 
 export function toEstimationInput(values: CalculatorFormValues): EstimationInput {

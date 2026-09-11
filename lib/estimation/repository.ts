@@ -7,6 +7,7 @@
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import {
+  budgetComparisons,
   estimateItems,
   estimateRanges,
   estimates,
@@ -18,6 +19,7 @@ import {
   serviceTypes,
   uncertaintyBands,
   userBudgetItems,
+  userBudgetLines,
   userBudgets,
   vatRates,
 } from "@/db/schema";
@@ -183,21 +185,42 @@ export async function persistEstimate(args: {
   return estimate.id;
 }
 
+/**
+ * Crea una nueva `budget_comparisons` (con un único presupuesto dentro,
+ * hoy) y devuelve su id — es el id que se usa en `/comparar/[id]`, para
+ * que añadir un segundo/tercer presupuesto a la MISMA comparación en el
+ * futuro ("compara 3 presupuestos") no invalide un enlace ya compartido.
+ */
 export async function persistUserBudget(args: {
   estimateId: string;
   declared: DeclaredBudgetValues;
   comparison: ComparisonResult;
 }): Promise<string> {
+  const [comparison] = await db.insert(budgetComparisons).values({ estimateId: args.estimateId }).returning();
+
   const [budget] = await db
     .insert(userBudgets)
     .values({
-      estimateId: args.estimateId,
+      comparisonId: comparison.id,
+      description: args.declared.description ?? null,
       total: args.declared.total,
       verdict: args.comparison.verdict,
       deviationPct: args.comparison.deviationPct,
       deviationAbsolute: args.comparison.deviationAbsolute,
     })
     .returning();
+
+  if (args.declared.lines.length > 0) {
+    await db.insert(userBudgetLines).values(
+      args.declared.lines.map((line, index) => ({
+        userBudgetId: budget.id,
+        label: line.label,
+        category: line.category,
+        amount: line.amount,
+        sortOrder: index,
+      })),
+    );
+  }
 
   if (args.comparison.lineVerdicts.length > 0) {
     await db.insert(userBudgetItems).values(
@@ -213,7 +236,7 @@ export async function persistUserBudget(args: {
     );
   }
 
-  return budget.id;
+  return comparison.id;
 }
 
 export async function getEstimateForDisplay(id: string) {
@@ -227,13 +250,35 @@ export async function getEstimateForDisplay(id: string) {
   return { estimate, items, ranges, methodologyVersion: rule ? `v${rule.version}` : "desconocida" };
 }
 
-export async function getUserBudgetForDisplay(id: string) {
-  const [budget] = await db.select().from(userBudgets).where(eq(userBudgets.id, id)).limit(1);
-  if (!budget) return null;
+/**
+ * Devuelve TODOS los presupuestos de una comparación (hoy siempre 1, pero
+ * la forma ya es un array para no tener que cambiar el contrato de esta
+ * función cuando se permita añadir un 2º/3º presupuesto a comparar).
+ */
+export async function getComparisonForDisplay(comparisonId: string) {
+  const [comparison] = await db.select().from(budgetComparisons).where(eq(budgetComparisons.id, comparisonId)).limit(1);
+  if (!comparison) return null;
 
-  const budgetItems = await db.select().from(userBudgetItems).where(eq(userBudgetItems.userBudgetId, id));
-  const estimateData = await getEstimateForDisplay(budget.estimateId);
+  const estimateData = await getEstimateForDisplay(comparison.estimateId);
   if (!estimateData) return null;
 
-  return { budget, budgetItems, estimate: estimateData };
+  const budgetRows = await db
+    .select()
+    .from(userBudgets)
+    .where(eq(userBudgets.comparisonId, comparisonId))
+    .orderBy(userBudgets.createdAt);
+
+  const budgets = await Promise.all(
+    budgetRows.map(async (budget) => {
+      const lines = await db
+        .select()
+        .from(userBudgetLines)
+        .where(eq(userBudgetLines.userBudgetId, budget.id))
+        .orderBy(userBudgetLines.sortOrder);
+      const items = await db.select().from(userBudgetItems).where(eq(userBudgetItems.userBudgetId, budget.id));
+      return { budget, lines, items };
+    }),
+  );
+
+  return { comparison, budgets, estimate: estimateData };
 }

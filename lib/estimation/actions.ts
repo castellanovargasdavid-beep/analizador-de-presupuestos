@@ -62,7 +62,7 @@ export async function calculateEstimateAction(rawForm: unknown): Promise<ActionR
 export async function compareBudgetAction(
   rawForm: unknown,
   rawBudget: unknown,
-): Promise<ActionResult<{ userBudgetId: string }>> {
+): Promise<ActionResult<{ comparisonId: string }>> {
   const parsedForm = calculatorFormSchema.safeParse(rawForm);
   if (!parsedForm.success) {
     return { ok: false, error: "El formulario tiene datos inválidos." };
@@ -102,9 +102,9 @@ export async function compareBudgetAction(
     });
 
     const comparison = compareBudget(evaluation, declared, { riteSuperaUmbral: rite.superaUmbral });
-    const userBudgetId = await persistUserBudget({ estimateId, declared, comparison });
+    const comparisonId = await persistUserBudget({ estimateId, declared, comparison });
 
-    return { ok: true, data: { userBudgetId } };
+    return { ok: true, data: { comparisonId } };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Error inesperado al comparar el presupuesto." };
   }

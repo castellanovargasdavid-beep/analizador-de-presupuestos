@@ -3,7 +3,7 @@ import { Container } from "../ui/Container";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-24 border-t border-neutral-200 bg-white">
+    <footer className="mt-24 border-t border-neutral-200 bg-white print:hidden">
       <Container className="grid gap-8 py-12 text-sm text-neutral-700 sm:grid-cols-3">
         <div>
           <p className="font-bold text-brand-900">Presupuesto Claro</p>
