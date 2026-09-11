@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+/*
+ * Sistema de diseño — tono "herramienta financiera de confianza", no blog.
+ * Fuente del sistema (system-ui) en vez de fuentes web descargadas: evita
+ * dependencias de red en build y encaja con la sobriedad buscada.
+ * Colores de estado alineados con la guía de dataviz del proyecto: nunca
+ * se usan solos, siempre acompañados de icono + texto.
+ */
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Marca — azul-marino, transmite seriedad/confianza financiera */
+  --color-brand-50: #eef4fb;
+  --color-brand-100: #d9e8f5;
+  --color-brand-200: #b3d0ec;
+  --color-brand-300: #82b0de;
+  --color-brand-400: #4f8ccb;
+  --color-brand-500: #2a6cb0;
+  --color-brand-600: #1f5590;
+  --color-brand-700: #1a4373;
+  --color-brand-800: #16345a;
+  --color-brand-900: #122843;
+  --color-brand-950: #0b1a2e;
+
+  /* Neutros */
+  --color-neutral-25: #fcfcfb;
+  --color-neutral-50: #f9f9f7;
+  --color-neutral-100: #f3f2ee;
+  --color-neutral-200: #e1e0d9;
+  --color-neutral-300: #c3c2b7;
+  --color-neutral-500: #898781;
+  --color-neutral-700: #52514e;
+  --color-neutral-950: #0b0b0b;
+
+  /* Estado — nunca solo color, siempre con icono + texto */
+  --color-good: #0ca30c;
+  --color-good-text: #0a7a0a;
+  --color-good-bg: #e7f7e7;
+
+  --color-warning: #fab219;
+  --color-warning-text: #8a5a00;
+  --color-warning-bg: #fef3d9;
+
+  --color-info: #2a78d6;
+  --color-info-text: #1c5cab;
+  --color-info-bg: #e8f1fc;
+
+  --color-critical: #d03b3b;
+  --color-critical-text: #b42323;
+  --color-critical-bg: #fbe7e7;
+}
+
+body {
+  background: var(--color-neutral-50);
+  color: var(--color-neutral-950);
+}
+
+/* Números grandes (rangos, hero figures): proporcionales, nunca tabulares salvo tablas. */
+.font-tabular {
+  font-variant-numeric: tabular-nums;
+}
