@@ -12,6 +12,7 @@ import { formatEUR } from "@/lib/format";
 import { absoluteUrl } from "@/lib/site";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { ARTICLE_AUTHOR, pageMetadata } from "@/lib/metadata";
+import { listFaqsForPage } from "@/lib/content/repository";
 
 export const metadata = pageMetadata({
   title: "Precio medio de instalar aire acondicionado en España",
@@ -29,28 +30,11 @@ const SYSTEM_TYPES: { slug: string; label: string }[] = [
   { slug: "conductos", label: "Por conductos" },
 ];
 
-const FAQ_ITEMS = [
-  {
-    question: "¿Cuál es el precio medio de instalar aire acondicionado en España?",
-    answer:
-      "Depende sobre todo del tipo de sistema y de la gama del equipo: un split de una unidad en gama media suele moverse en un rango bastante más bajo que un multisplit de tres unidades en gama premium. Usa la herramienta de esta página para ver el rango de tu caso.",
-  },
-  {
-    question: "¿Por qué varía tanto el precio entre presupuestos?",
-    answer:
-      "Porque casi ningún presupuesto describe exactamente lo mismo: cambia la gama del equipo, los metros de línea frigorífica, si hay que retirar un equipo antiguo, y el tipo de IVA aplicado. Dos presupuestos 'del mismo trabajo' pueden no serlo en absoluto.",
-  },
-  {
-    question: "¿Estos precios incluyen IVA?",
-    answer:
-      "Sí, el rango mostrado es con IVA incluido (21% en la mayoría de los casos de instalación de A/C, o 10% si se cumplen los tres requisitos legales — ver metodología).",
-  },
-];
-
 export default async function PreciosInstalacionPage() {
-  const [context, materialLevels] = await Promise.all([
+  const [context, materialLevels, faqItems] = await Promise.all([
     loadPricingContext("aire-acondicionado", "instalacion"),
     listMaterialLevels(),
+    listFaqsForPage("precios-aire-acondicionado-instalacion"),
   ]);
 
   const baseVatEligibility = { clientePersonaFisicaUsoParticular: true, viviendaMasDeDosAnos: true };
@@ -179,7 +163,7 @@ export default async function PreciosInstalacionPage() {
           ]}
         />
 
-        <FAQSection items={FAQ_ITEMS} />
+        <FAQSection items={faqItems} />
 
         <RelatedLinks
           items={[

@@ -9,6 +9,7 @@ import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { pageMetadata } from "@/lib/metadata";
 import { loadPricingContext } from "@/lib/estimation/repository";
 import { evaluateEstimate } from "@/lib/estimation/engine";
+import { listFaqsForPage } from "@/lib/content/repository";
 
 export const metadata = pageMetadata({
   title: "Presupuesto Claro — ¿Te están cobrando de más?",
@@ -29,28 +30,6 @@ const CATEGORIAS = [
   { nombre: "Fontanería", activo: false },
 ];
 
-const FAQS = [
-  {
-    question: "¿Esto es una tasación oficial?",
-    answer:
-      "No. Es una estimación orientativa basada en rangos de mercado y, cuando existen, en normativa oficial. No sustituye un peritaje ni una tasación profesional, y no tiene validez legal.",
-  },
-  {
-    question: "¿De dónde salen los rangos de precio?",
-    answer:
-      "De una combinación de normativa oficial (RITE), precios de catálogo reales de instaladores y agregadores de mercado. Cada cifra de la calculadora indica su nivel de confianza. Todo el detalle está en la página de metodología.",
-  },
-  {
-    question: "Si mi presupuesto está por encima del rango, ¿significa que me están engañando?",
-    answer:
-      "No necesariamente. Puede haber diferencias por la gama del equipo, dificultad de acceso, materiales o garantías incluidas que nuestro formulario no ha capturado. Por eso mostramos posibles razones y preguntas recomendadas, nunca una acusación.",
-  },
-  {
-    question: "¿Tengo que registrarme para usar la herramienta?",
-    answer: "No. Puedes calcular y comparar tu presupuesto sin crear ninguna cuenta.",
-  },
-];
-
 const PASOS = [
   {
     titulo: "Describe el trabajo",
@@ -67,7 +46,10 @@ const PASOS = [
 ];
 
 export default async function HomePage() {
-  const context = await loadPricingContext("aire-acondicionado", "instalacion");
+  const [context, faqs] = await Promise.all([
+    loadPricingContext("aire-acondicionado", "instalacion"),
+    listFaqsForPage("home"),
+  ]);
   const baseVatEligibility = { clientePersonaFisicaUsoParticular: true, viviendaMasDeDosAnos: true };
 
   function evaluate(overrides: {
@@ -234,7 +216,7 @@ export default async function HomePage() {
       {/* FAQ */}
       <section className="py-16">
         <Container className="max-w-3xl">
-          <FAQSection title="Preguntas frecuentes" items={FAQS} />
+          <FAQSection title="Preguntas frecuentes" items={faqs} />
         </Container>
       </section>
 

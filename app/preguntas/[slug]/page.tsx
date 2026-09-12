@@ -5,57 +5,58 @@ import { Breadcrumbs } from "@/components/content/Breadcrumbs";
 import { RelatedLinks } from "@/components/content/RelatedLinks";
 import { SourcesNote } from "@/components/content/SourcesNote";
 import { JsonLd } from "@/components/content/JsonLd";
-import { getPregunta, PREGUNTAS } from "@/lib/content/preguntas";
+import { getPublishedQuestion, listPublishedQuestionSlugs } from "@/lib/content/repository";
 import { absoluteUrl } from "@/lib/site";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { ARTICLE_AUTHOR, pageMetadata } from "@/lib/metadata";
 
-// Fecha real (verificable en git log) en la que se añadió lib/content/preguntas.ts —
-// las tres preguntas se publicaron juntas en ese commit.
-const PREGUNTAS_PUBLISHED_AT = "2026-09-12";
-
-// Conjunto cerrado: solo se sirven las preguntas registradas en
-// lib/content/preguntas.ts. `dynamicParams = false` hace que cualquier
-// otro slug devuelva 404 en vez de generar una página bajo demanda — así
-// no puede aparecer una combinación no revisada.
+// Conjunto cerrado: solo se sirven las preguntas publicadas desde /admin.
+// `dynamicParams = false` hace que cualquier otro slug devuelva 404 en vez
+// de generar una página bajo demanda — así no puede aparecer una
+// combinación no revisada.
 export const dynamicParams = false;
+export const revalidate = 3600;
 
-export function generateStaticParams() {
-  return PREGUNTAS.map((p) => ({ slug: p.slug }));
+export async function generateStaticParams() {
+  const slugs = await listPublishedQuestionSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const pregunta = getPregunta(slug);
+  const pregunta = await getPublishedQuestion(slug);
   if (!pregunta) return {};
   return pageMetadata({
-    title: pregunta.pregunta,
-    description: pregunta.respuestaCorta,
+    title: pregunta.question,
+    description: pregunta.shortAnswer,
     path: `/preguntas/${pregunta.slug}`,
   });
 }
 
 export default async function PreguntaPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const pregunta = getPregunta(slug);
+  const pregunta = await getPublishedQuestion(slug);
   if (!pregunta) notFound();
+
+  const publishedDate = (pregunta.publishedAt ?? pregunta.createdAt).toISOString().slice(0, 10);
+  const modifiedDate = pregunta.updatedAt.toISOString().slice(0, 10);
 
   return (
     <Container className="max-w-2xl py-12">
       <PageViewTracker />
-      <Breadcrumbs items={[{ label: "Inicio", href: "/" }, { label: "Preguntas", href: "/preguntas" }, { label: pregunta.pregunta }]} />
+      <Breadcrumbs items={[{ label: "Inicio", href: "/" }, { label: "Preguntas", href: "/preguntas" }, { label: pregunta.question }]} />
 
-      <h1 className="mt-3 text-3xl font-bold text-neutral-950">{pregunta.pregunta}</h1>
-      <p className="mt-4 rounded-lg bg-brand-50 p-4 text-lg font-medium text-brand-900">{pregunta.respuestaCorta}</p>
+      <h1 className="mt-3 text-3xl font-bold text-neutral-950">{pregunta.question}</h1>
+      <p className="mt-4 rounded-lg bg-brand-50 p-4 text-lg font-medium text-brand-900">{pregunta.shortAnswer}</p>
 
       <div className="mt-6 space-y-4 text-neutral-700">
-        {pregunta.detalle.map((p) => (
+        {pregunta.detail.map((p) => (
           <p key={p}>{p}</p>
         ))}
       </div>
 
       <div className="mt-10">
-        <RelatedLinks items={pregunta.relacionadas} />
+        <RelatedLinks items={pregunta.relatedLinks} />
       </div>
 
       <div className="mt-8">
@@ -69,8 +70,8 @@ export default async function PreguntaPage({ params }: { params: Promise<{ slug:
           mainEntity: [
             {
               "@type": "Question",
-              name: pregunta.pregunta,
-              acceptedAnswer: { "@type": "Answer", text: `${pregunta.respuestaCorta} ${pregunta.detalle.join(" ")}` },
+              name: pregunta.question,
+              acceptedAnswer: { "@type": "Answer", text: `${pregunta.shortAnswer} ${pregunta.detail.join(" ")}` },
             },
           ],
         }}
@@ -79,11 +80,11 @@ export default async function PreguntaPage({ params }: { params: Promise<{ slug:
         data={{
           "@context": "https://schema.org",
           "@type": "Article",
-          headline: pregunta.pregunta,
+          headline: pregunta.question,
           url: absoluteUrl(`/preguntas/${pregunta.slug}`),
           author: ARTICLE_AUTHOR,
-          datePublished: PREGUNTAS_PUBLISHED_AT,
-          dateModified: PREGUNTAS_PUBLISHED_AT,
+          datePublished: publishedDate,
+          dateModified: modifiedDate,
           inLanguage: "es-ES",
         }}
       />

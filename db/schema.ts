@@ -25,6 +25,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import type { FactorCondition } from "../lib/estimation/condition-types";
+import type { GuideBlock, RelatedLinkEntry } from "../lib/content/blocks";
 
 export const confidenceEnum = pgEnum("confidence", ["A", "B", "C"]);
 
@@ -67,6 +68,14 @@ export const professionalVerificationStatusEnum = pgEnum("professional_verificat
   "verificado",
   "rechazado",
 ]);
+
+/**
+ * `borrador`: en edición, nunca se sirve en público. `publicado`: visible
+ * en el sitio. `archivado`: existió, ya no se muestra, pero se conserva
+ * (nunca se borra contenido publicado por si hay enlaces/índice de Google
+ * apuntando a él — se archiva y esa URL puede empezar a dar 404 a propósito).
+ */
+export const contentStatusEnum = pgEnum("content_status", ["borrador", "publicado", "archivado"]);
 
 export const analyticsEventTypeEnum = pgEnum("analytics_event_type", [
   "page_view",
@@ -191,6 +200,8 @@ export const dataSources = pgTable("data_sources", {
   /** Fecha en la que NOSOTROS verificamos el dato (siempre conocida). */
   retrievedOn: text("retrieved_on").notNull(),
   notes: text("notes").notNull(),
+  /** Una fuente obsoleta se desactiva (deja de poder citarse en un factor nuevo), nunca se borra. */
+  isActive: boolean("is_active").notNull().default(true),
   ...timestamps,
 });
 
@@ -490,4 +501,85 @@ export const rateLimitBuckets = pgTable("rate_limit_buckets", {
   key: text("key").primaryKey(),
   windowStart: timestamp("window_start", { withTimezone: true }).notNull(),
   count: integer("count").notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// Contenido editorial gestionable desde /admin — sustituye a los arrays de
+// TypeScript que antes vivían en lib/content/*.ts y en cada page.tsx
+// (FAQ_ITEMS hardcodeados). Todo lo que es información comercial/editorial
+// (preguntas, guías, FAQs) vive aquí; el CÓDIGO solo sabe leerlo y
+// renderizarlo — nunca contiene el texto en sí.
+// ---------------------------------------------------------------------------
+
+/** Guías largas (plantilla "Guías" de docs/04). Cuerpo estructurado en bloques, ver lib/content/blocks.ts. */
+export const seoGuides = pgTable("seo_guides", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  summary: text("summary").notNull(),
+  metaDescription: text("meta_description").notNull(),
+  intro: text("intro").notNull(),
+  body: jsonb("body").$type<GuideBlock[]>().notNull(),
+  /** CTA principal (botón destacado), distinto de los enlaces relacionados de abajo. Opcional. */
+  ctaHref: text("cta_href"),
+  ctaLabel: text("cta_label"),
+  relatedLinks: jsonb("related_links").$type<RelatedLinkEntry[]>().notNull().default([]),
+  status: contentStatusEnum("status").notNull().default("borrador"),
+  /** Se incrementa cada vez que se publica una edición — para poder citar "versión N" igual que en pricing_rules. */
+  version: integer("version").notNull().default(1),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  ...timestamps,
+});
+
+/** Preguntas concretas (plantilla "Preguntas" de docs/04): una intención real por fila. */
+export const seoQuestions = pgTable("seo_questions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  slug: text("slug").notNull().unique(),
+  question: text("question").notNull(),
+  shortAnswer: text("short_answer").notNull(),
+  detail: jsonb("detail").$type<string[]>().notNull(),
+  relatedLinks: jsonb("related_links").$type<RelatedLinkEntry[]>().notNull().default([]),
+  status: contentStatusEnum("status").notNull().default("borrador"),
+  version: integer("version").notNull().default(1),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  ...timestamps,
+});
+
+/**
+ * FAQ de una página concreta (home, calculadora, precios...), identificada
+ * por `pageKey` — no son las guías/preguntas de arriba (esas son páginas
+ * propias); esto es el bloque de preguntas frecuentes embebido dentro de
+ * OTRA página. `pageKey` es una clave estable que cada page.tsx declara al
+ * pedir sus FAQs (ver lib/content/repository.ts).
+ */
+export const faqs = pgTable("faqs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  pageKey: text("page_key").notNull(),
+  question: text("question").notNull(),
+  answer: text("answer").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  ...timestamps,
+});
+
+/**
+ * Quién cambió qué desde /admin y cuándo — la mitad "administrativa" de la
+ * auditoría (la otra mitad, "por qué esta estimación dio este rango", no
+ * necesita tabla propia: se reconstruye consultando estimate_items ->
+ * pricing_factors -> data_sources, que ya quedan enlazados por id).
+ * `actor` es un texto simple porque hoy solo existe un admin (ver
+ * lib/admin/auth.ts) — el día que haya varios, esta columna ya está lista
+ * para llevar su identificador real sin cambiar el esquema.
+ */
+export const adminAuditLog = pgTable("admin_audit_log", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  actor: text("actor").notNull(),
+  action: text("action").notNull(),
+  entityType: text("entity_type").notNull(),
+  entityId: text("entity_id").notNull(),
+  summary: text("summary").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

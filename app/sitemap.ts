@@ -1,16 +1,15 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL as BASE_URL } from "@/lib/site";
-import { GUIAS } from "@/lib/content/guias";
-import { PREGUNTAS } from "@/lib/content/preguntas";
+import { listPublishedGuideSlugs, listPublishedQuestionSlugs } from "@/lib/content/repository";
 
 /**
- * Páginas estáticas + las generadas por los registros de contenido
- * (guías, preguntas) — así una guía o pregunta nueva entra sola en el
- * sitemap con solo añadir la entrada al registro, sin tocar este archivo.
- * Nunca incluye `/resultado/*` ni `/comparar/*` (noindex,follow) ni
- * páginas de territorio sin generar (ver docs/04, sección de indexación).
+ * Páginas estáticas + las generadas por el contenido publicado desde
+ * /admin (guías, preguntas) — así una guía o pregunta nueva entra sola en
+ * el sitemap en cuanto se publica, sin tocar código. Nunca incluye
+ * `/resultado/*` ni `/comparar/*` (noindex,follow) ni páginas de
+ * territorio sin generar (ver docs/04, sección de indexación).
  */
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPaths = [
     "",
     "/aire-acondicionado",
@@ -30,8 +29,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/legal/aviso-legal",
   ];
 
-  const guiaPaths = GUIAS.map((g) => `/guias/${g.slug}`);
-  const preguntaPaths = PREGUNTAS.map((p) => `/preguntas/${p.slug}`);
+  const [guiaSlugs, preguntaSlugs] = await Promise.all([listPublishedGuideSlugs(), listPublishedQuestionSlugs()]);
+  const guiaPaths = guiaSlugs.map((slug) => `/guias/${slug}`);
+  const preguntaPaths = preguntaSlugs.map((slug) => `/preguntas/${slug}`);
 
   return [...staticPaths, ...guiaPaths, ...preguntaPaths].map((path) => ({
     url: `${BASE_URL}${path}`,

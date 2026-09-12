@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Card } from "@/components/ui/Card";
 import { Breadcrumbs } from "@/components/content/Breadcrumbs";
-import { PREGUNTAS } from "@/lib/content/preguntas";
+import { listPublishedQuestions } from "@/lib/content/repository";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { pageMetadata } from "@/lib/metadata";
 
@@ -12,7 +12,11 @@ export const metadata = pageMetadata({
   path: "/preguntas",
 });
 
-export default function PreguntasIndexPage() {
+export const revalidate = 3600;
+
+export default async function PreguntasIndexPage() {
+  const preguntas = await listPublishedQuestions();
+
   return (
     <Container className="max-w-2xl py-12">
       <PageViewTracker />
@@ -24,11 +28,11 @@ export default function PreguntasIndexPage() {
       </p>
 
       <div className="mt-8 space-y-4">
-        {PREGUNTAS.map((p) => (
+        {preguntas.map((p) => (
           <Link key={p.slug} href={`/preguntas/${p.slug}`} className="block">
             <Card className="transition-colors hover:border-brand-400">
-              <h2 className="font-bold text-neutral-950">{p.pregunta}</h2>
-              <p className="mt-1 text-sm text-neutral-700">{p.respuestaCorta}</p>
+              <h2 className="font-bold text-neutral-950">{p.question}</h2>
+              <p className="mt-1 text-sm text-neutral-700">{p.shortAnswer}</p>
             </Card>
           </Link>
         ))}

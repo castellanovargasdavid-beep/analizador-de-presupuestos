@@ -9,12 +9,12 @@ import { RelatedLinks } from "@/components/content/RelatedLinks";
 import { SourcesNote } from "@/components/content/SourcesNote";
 import { JsonLd } from "@/components/content/JsonLd";
 import { RangeBar } from "@/components/result/RangeBar";
-import { RITE_UMBRAL_KW } from "@/lib/estimation/seed-data";
 import { loadPricingContext, listMaterialLevels, listRegions } from "@/lib/estimation/repository";
 import { evaluateEstimate } from "@/lib/estimation/engine";
 import { formatEUR } from "@/lib/format";
 import { absoluteUrl } from "@/lib/site";
 import { pageMetadata } from "@/lib/metadata";
+import { listFaqsForPage } from "@/lib/content/repository";
 
 export const metadata = pageMetadata({
   title: "Precio de instalar aire acondicionado: calculadora orientativa",
@@ -26,28 +26,6 @@ export const metadata = pageMetadata({
 // Regiones y niveles de material cambian poco; se revalida cada hora en vez
 // de exigir un redeploy completo para reflejar cambios en el seed.
 export const revalidate = 3600;
-
-const FAQ_ITEMS = [
-  {
-    question: "¿Necesito el certificado RITE para instalar aire acondicionado?",
-    answer: `Solo si la potencia nominal supera los ${RITE_UMBRAL_KW} kW: en ese caso el RITE exige memoria técnica y registro del certificado ante tu Comunidad Autónoma. Por debajo de ese umbral no se exige documentación adicional.`,
-  },
-  {
-    question: "¿Por qué mi presupuesto tiene un IVA del 21% y no del 10%?",
-    answer:
-      "El 10% reducido exige tres requisitos a la vez: persona física con uso particular, vivienda de más de 2 años, y que el equipo no supere el 40% del presupuesto. En instalaciones de aire acondicionado el equipo suele superar ese 40%, así que se aplica el 21% general salvo que compres el equipo por separado y contrates solo la instalación.",
-  },
-  {
-    question: "¿Cuánto cuesta retirar un equipo antiguo?",
-    answer:
-      "Si es para desecharlo, es una partida relativamente pequeña dentro del presupuesto. Si necesitas que lo desmonten para reutilizarlo en otra ubicación, suele costar más. Pídelo siempre como partida separada en el presupuesto.",
-  },
-  {
-    question: "¿Se puede confiar en el precio que da la calculadora?",
-    answer:
-      "Es una estimación orientativa, no una tasación. Cada partida indica si sale de normativa oficial, de catálogo real de mercado o de una heurística propia — con el detalle completo en la metodología.",
-  },
-];
 
 async function computeExample(overrides: Parameters<typeof evaluateEstimate>[0]["input"]) {
   const context = await loadPricingContext("aire-acondicionado", "instalacion");
@@ -62,9 +40,10 @@ async function computeExample(overrides: Parameters<typeof evaluateEstimate>[0][
 }
 
 export default async function InstalacionPage() {
-  const [regions, materialLevels, ejemploSimple, ejemploMultisplit] = await Promise.all([
+  const [regions, materialLevels, faqItems, ejemploSimple, ejemploMultisplit] = await Promise.all([
     listRegions(),
     listMaterialLevels(),
+    listFaqsForPage("aire-acondicionado-instalacion"),
     computeExample({
       selections: { systemType: "split-1x1", materialLevel: "media", retiradaEquipo: "no" },
       quantities: { metrosLineaFrigorificaExtra: 0, canaletaVistaMetros: 0, potenciaKw: 3.5 },
@@ -170,7 +149,7 @@ export default async function InstalacionPage() {
           ]}
         />
 
-        <FAQSection items={FAQ_ITEMS} />
+        <FAQSection items={faqItems} />
 
         <RelatedLinks
           items={[

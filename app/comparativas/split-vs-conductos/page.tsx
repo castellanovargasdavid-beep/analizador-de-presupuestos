@@ -13,6 +13,7 @@ import { formatEUR } from "@/lib/format";
 import { absoluteUrl } from "@/lib/site";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { ARTICLE_AUTHOR, pageMetadata } from "@/lib/metadata";
+import { listFaqsForPage } from "@/lib/content/repository";
 
 export const metadata = pageMetadata({
   title: "Split vs. conductos: qué sistema de aire acondicionado conviene",
@@ -23,26 +24,11 @@ export const metadata = pageMetadata({
 
 export const revalidate = 3600;
 
-const FAQ_ITEMS = [
-  {
-    question: "¿Los conductos son siempre más caros que un split?",
-    answer:
-      "Para una sola estancia, casi siempre sí: un sistema por conductos es un paquete completo que cubre varias zonas y requiere más obra (falso techo, rejillas), mientras que un split de una unidad cubre una sola habitación con mucha menos obra.",
-  },
-  {
-    question: "¿Cuándo compensa instalar conductos en vez de varios splits?",
-    answer:
-      "Cuando quieres climatizar una vivienda completa con una estética unificada (sin unidades visibles en las paredes) y ya tienes o vas a hacer un falso techo. Para 1-2 estancias sueltas, un split o multisplit suele salir más ajustado.",
-  },
-  {
-    question: "¿El mantenimiento es distinto entre uno y otro?",
-    answer:
-      "Los conductos suelen requerir revisión de la red de conductos además del propio equipo, mientras que un split es más sencillo de mantener por ser una unidad autocontenida por estancia.",
-  },
-];
-
 export default async function SplitVsConductosPage() {
-  const context = await loadPricingContext("aire-acondicionado", "instalacion");
+  const [context, faqItems] = await Promise.all([
+    loadPricingContext("aire-acondicionado", "instalacion"),
+    listFaqsForPage("comparativas-split-vs-conductos"),
+  ]);
   const vatEligibility = { clientePersonaFisicaUsoParticular: true, viviendaMasDeDosAnos: true };
 
   function evaluate(systemType: string) {
@@ -133,7 +119,7 @@ export default async function SplitVsConductosPage() {
           ]}
         />
 
-        <FAQSection items={FAQ_ITEMS} />
+        <FAQSection items={faqItems} />
 
         <RelatedLinks
           items={[

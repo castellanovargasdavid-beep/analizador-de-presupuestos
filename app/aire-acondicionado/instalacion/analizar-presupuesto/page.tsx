@@ -10,6 +10,7 @@ import { JsonLd } from "@/components/content/JsonLd";
 import { listMaterialLevels, listRegions } from "@/lib/estimation/repository";
 import { absoluteUrl } from "@/lib/site";
 import { pageMetadata } from "@/lib/metadata";
+import { listFaqsForPage } from "@/lib/content/repository";
 
 export const metadata = pageMetadata({
   title: "¿Es caro tu presupuesto de aire acondicionado? Compáralo",
@@ -20,26 +21,12 @@ export const metadata = pageMetadata({
 
 export const revalidate = 3600;
 
-const FAQ_ITEMS = [
-  {
-    question: "¿Esto significa que mi instalador me está cobrando de más?",
-    answer:
-      "No necesariamente. Un presupuesto por encima del rango puede deberse a materiales de más calidad, dificultad de acceso, garantías incluidas o desplazamiento. La herramienta señala una diferencia, no juzga al profesional.",
-  },
-  {
-    question: "¿Qué partidas debería pedir que me desglosen?",
-    answer:
-      "Como mínimo: equipo (marca y modelo), mano de obra/instalación, metros de línea frigorífica incluidos, y si se incluye la retirada del equipo antiguo y el certificado de la instalación.",
-  },
-  {
-    question: "¿Necesito subir el PDF del presupuesto?",
-    answer:
-      "No. Escribes las partidas principales tú mismo (nombre, categoría e importe) — no hace falta ni cuenta ni subir ningún archivo.",
-  },
-];
-
 export default async function AnalizarPresupuestoPage() {
-  const [regions, materialLevels] = await Promise.all([listRegions(), listMaterialLevels()]);
+  const [regions, materialLevels, faqItems] = await Promise.all([
+    listRegions(),
+    listMaterialLevels(),
+    listFaqsForPage("analizar-presupuesto"),
+  ]);
   return (
     <Container className="max-w-3xl py-12">
       <Breadcrumbs
@@ -83,7 +70,7 @@ export default async function AnalizarPresupuestoPage() {
           ]}
         />
 
-        <FAQSection items={FAQ_ITEMS} />
+        <FAQSection items={faqItems} />
 
         <RelatedLinks
           items={[
