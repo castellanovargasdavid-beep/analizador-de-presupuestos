@@ -4,6 +4,7 @@ import { Container } from "@/components/ui/Container";
 import { Card } from "@/components/ui/Card";
 import { Breadcrumbs } from "@/components/content/Breadcrumbs";
 import { PREGUNTAS } from "@/lib/content/preguntas";
+import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 
 export const metadata: Metadata = {
   title: "Preguntas concretas sobre instalar aire acondicionado",
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
 export default function PreguntasIndexPage() {
   return (
     <Container className="max-w-2xl py-12">
+      <PageViewTracker />
       <Breadcrumbs items={[{ label: "Inicio", href: "/" }, { label: "Preguntas" }]} />
       <h1 className="mt-3 text-3xl font-bold text-neutral-950">Preguntas concretas</h1>
       <p className="mt-4 text-neutral-700">

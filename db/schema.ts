@@ -47,6 +47,39 @@ export const budgetLineStatusEnum = pgEnum("budget_line_status", [
 
 export const budgetLineCategoryEnum = pgEnum("budget_line_category", ["equipo", "mano_obra", "extras", "otros"]);
 
+/**
+ * `nuevo`: recién capturado, sin revisar. `en_revision`: en proceso de
+ * buscar un profesional adecuado. `contactado`: se ha puesto a un
+ * profesional en contacto con el usuario. `sin_cobertura`: no hay ningún
+ * profesional verificado para ese servicio/zona todavía (estado honesto,
+ * no se inventa un match). `cerrado`: fin del ciclo de vida del lead.
+ */
+export const leadStatusEnum = pgEnum("lead_status", [
+  "nuevo",
+  "en_revision",
+  "contactado",
+  "sin_cobertura",
+  "cerrado",
+]);
+
+export const professionalVerificationStatusEnum = pgEnum("professional_verification_status", [
+  "pendiente",
+  "verificado",
+  "rechazado",
+]);
+
+export const analyticsEventTypeEnum = pgEnum("analytics_event_type", [
+  "page_view",
+  "calculator_start",
+  "calculator_step",
+  "estimate_result_view",
+  "comparison_result_view",
+  "lead_form_opened",
+  "lead_submitted",
+  "wizard_abandoned",
+  "internal_search",
+]);
+
 const money = (name: string) => numeric(name, { precision: 10, scale: 2, mode: "number" });
 const pct = (name: string) => numeric(name, { precision: 5, scale: 4, mode: "number" });
 const timestamps = {
@@ -360,4 +393,87 @@ export const userBudgetItems = pgTable("user_budget_items", {
   expectedMin: money("expected_min").notNull(),
   expectedMax: money("expected_max").notNull(),
   status: budgetLineStatusEnum("status").notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// Profesionales y leads — arquitectura de monetización.
+//
+// `professionals` empieza y sigue vacía hasta que exista una red real
+// verificada: no se siembra ni un solo proveedor de ejemplo. `leads` sí es
+// real desde el primer usuario: cada solicitud queda guardada aunque hoy
+// no haya ningún profesional al que asignarla (estado `sin_cobertura`,
+// nunca un match inventado).
+// ---------------------------------------------------------------------------
+
+export const professionals = pgTable("professionals", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  verificationStatus: professionalVerificationStatusEnum("verification_status").notNull().default("pendiente"),
+  isActive: boolean("is_active").notNull().default(false),
+  notes: text("notes"),
+  ...timestamps,
+});
+
+/** A qué (servicio, región) atiende un profesional. `regionId` null = toda España. */
+export const professionalServiceAreas = pgTable("professional_service_areas", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  professionalId: uuid("professional_id")
+    .notNull()
+    .references(() => professionals.id),
+  serviceTypeId: uuid("service_type_id")
+    .notNull()
+    .references(() => serviceTypes.id),
+  regionId: uuid("region_id").references(() => regions.id),
+  ...timestamps,
+});
+
+export const leads = pgTable("leads", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  estimateId: uuid("estimate_id")
+    .notNull()
+    .references(() => estimates.id),
+  /** Si el lead viene de una comparación (ya tenía un presupuesto), se referencia también. */
+  comparisonId: uuid("comparison_id").references(() => budgetComparisons.id),
+  serviceTypeId: uuid("service_type_id")
+    .notNull()
+    .references(() => serviceTypes.id),
+  regionId: uuid("region_id").references(() => regions.id),
+  contactName: text("contact_name").notNull(),
+  contactEmail: text("contact_email").notNull(),
+  contactPhone: text("contact_phone"),
+  /** Descripción libre adicional del trabajo, aparte de lo ya capturado en la Estimate/UserBudget. */
+  description: text("description"),
+  status: leadStatusEnum("status").notNull().default("nuevo"),
+  /** Profesional al que se ha asignado, si alguno (null mientras no haya red real). */
+  assignedProfessionalId: uuid("assigned_professional_id").references(() => professionals.id),
+  /** Texto exacto del consentimiento aceptado, para poder demostrarlo (auditoría RGPD). */
+  consentVersion: text("consent_version").notNull(),
+  consentAcceptedAt: timestamp("consent_accepted_at", { withTimezone: true }).notNull(),
+  /** De qué landing page SEO viene la sesión que generó este lead (atribución). */
+  entryPath: text("entry_path"),
+  ...timestamps,
+});
+
+// ---------------------------------------------------------------------------
+// Analítica propia — sin cookies de terceros. `sessionId` vive solo en
+// sessionStorage del navegador (se pierde al cerrar la pestaña), nunca en
+// una cookie persistente ni se comparte con nadie fuera de esta base de
+// datos. Sirve para responder "qué página SEO produce leads", no para
+// perfilar usuarios.
+// ---------------------------------------------------------------------------
+
+export const analyticsEvents = pgTable("analytics_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  eventType: analyticsEventTypeEnum("event_type").notNull(),
+  sessionId: text("session_id").notNull(),
+  /** Primera página de la sesión (para atribuir conversión a la landing page SEO de entrada). */
+  entryPath: text("entry_path").notNull(),
+  path: text("path").notNull(),
+  estimateId: uuid("estimate_id").references(() => estimates.id),
+  comparisonId: uuid("comparison_id").references(() => budgetComparisons.id),
+  leadId: uuid("lead_id").references(() => leads.id),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

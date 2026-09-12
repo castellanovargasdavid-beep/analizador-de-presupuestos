@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/Badge";
 import { LinkButton } from "@/components/ui/Button";
 import { RangeBar } from "@/components/result/RangeBar";
 import { Breakdown } from "@/components/result/Breakdown";
+import { LeadRequestCard } from "@/components/leads/LeadRequestCard";
+import { TrackOnMount } from "@/components/analytics/TrackOnMount";
 import { getEstimateForDisplay } from "@/lib/estimation/repository";
 import { formatEUR } from "@/lib/format";
 import { AlertTriangleIcon, InfoIcon } from "@/components/ui/icons";
@@ -31,6 +33,7 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
 
   return (
     <Container className="max-w-3xl py-12">
+      <TrackOnMount eventType="estimate_result_view" estimateId={estimate.id} />
       <nav aria-label="Breadcrumb" className="text-sm text-neutral-500">
         <Link href="/" className="hover:text-brand-700">
           Inicio
@@ -107,6 +110,8 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
           <LinkButton href="/aire-acondicionado/instalacion/analizar-presupuesto">Comparar mi presupuesto</LinkButton>
         </div>
       </Card>
+
+      <LeadRequestCard estimateId={estimate.id} />
 
       <p className="mt-8 text-center text-sm text-neutral-500">
         <Badge tone="neutral">Metodología {methodologyVersion}</Badge> — esto no es una tasación profesional.{" "}

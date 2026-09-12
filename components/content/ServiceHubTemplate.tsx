@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Card } from "@/components/ui/Card";
 import { Breadcrumbs, type BreadcrumbItem } from "./Breadcrumbs";
+import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 
 export interface ServiceHubEntry {
   href?: string;
@@ -31,6 +32,7 @@ export function ServiceHubTemplate({
 }) {
   return (
     <Container className="max-w-3xl py-16">
+      <PageViewTracker />
       <Breadcrumbs items={breadcrumbs} />
       <h1 className="mt-3 text-3xl font-bold text-neutral-950">{title}</h1>
       <p className="mt-3 text-neutral-700">{intro}</p>

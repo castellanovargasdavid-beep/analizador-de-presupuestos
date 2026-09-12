@@ -11,6 +11,7 @@ import { loadPricingContext, listMaterialLevels } from "@/lib/estimation/reposit
 import { evaluateEstimate } from "@/lib/estimation/engine";
 import { formatEUR } from "@/lib/format";
 import { absoluteUrl } from "@/lib/site";
+import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 
 export const metadata: Metadata = {
   title: "Precio medio de instalar aire acondicionado en España",
@@ -103,6 +104,7 @@ export default async function PreciosInstalacionPage() {
 
   return (
     <Container className="max-w-3xl py-12">
+      <PageViewTracker />
       <Breadcrumbs items={[{ label: "Inicio", href: "/" }, { label: "Precio medio: instalación de aire acondicionado" }]} />
 
       <h1 className="mt-3 text-3xl font-bold tracking-tight text-neutral-950 sm:text-4xl">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
@@ -10,6 +10,7 @@ import { estimatePotenciaKwFromSuperficie } from "@/lib/estimation/sizing";
 import { calculateEstimateAction, compareBudgetAction } from "@/lib/estimation/actions";
 import type { CalculatorFormValues, DeclaredBudgetLineValues } from "@/lib/estimation/validation";
 import { ArrowRightIcon, AlertTriangleIcon } from "../ui/icons";
+import { trackEvent } from "@/lib/analytics/track";
 
 type Mode = "calculadora" | "analizador";
 
@@ -101,6 +102,34 @@ export function Wizard({
   const totalSteps = 6;
   const update = <K extends keyof State>(key: K, value: State[K]) => setState((s) => ({ ...s, [key]: value }));
 
+  const finishedRef = useRef(false);
+  const isFirstStepEffect = useRef(true);
+
+  useEffect(() => {
+    trackEvent({ eventType: "calculator_start", metadata: { mode } });
+    // Solo una vez al montar el asistente.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (isFirstStepEffect.current) {
+      isFirstStepEffect.current = false;
+      return;
+    }
+    trackEvent({ eventType: "calculator_step", metadata: { step, mode } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
+  useEffect(() => {
+    function handleBeforeUnload() {
+      if (!finishedRef.current) {
+        trackEvent({ eventType: "wizard_abandoned", metadata: { step, mode } });
+      }
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [step, mode]);
+
   const potenciaSugerida = useMemo(
     () => estimatePotenciaKwFromSuperficie(state.superficieM2, state.muchoVidrio),
     [state.superficieM2, state.muchoVidrio],
@@ -145,6 +174,7 @@ export function Wizard({
         setSubmitting(false);
         return;
       }
+      finishedRef.current = true;
       router.push(`/comparar/${result.data.comparisonId}`);
       return;
     }
@@ -155,6 +185,7 @@ export function Wizard({
       setSubmitting(false);
       return;
     }
+    finishedRef.current = true;
     router.push(`/resultado/${result.data.estimateId}`);
   }
 

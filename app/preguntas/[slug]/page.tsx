@@ -7,6 +7,7 @@ import { SourcesNote } from "@/components/content/SourcesNote";
 import { JsonLd } from "@/components/content/JsonLd";
 import { getPregunta, PREGUNTAS } from "@/lib/content/preguntas";
 import { absoluteUrl } from "@/lib/site";
+import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 
 // Conjunto cerrado: solo se sirven las preguntas registradas en
 // lib/content/preguntas.ts. `dynamicParams = false` hace que cualquier
@@ -36,6 +37,7 @@ export default async function PreguntaPage({ params }: { params: Promise<{ slug:
 
   return (
     <Container className="max-w-2xl py-12">
+      <PageViewTracker />
       <Breadcrumbs items={[{ label: "Inicio", href: "/" }, { label: "Preguntas", href: "/preguntas" }, { label: pregunta.pregunta }]} />
 
       <h1 className="mt-3 text-3xl font-bold text-neutral-950">{pregunta.pregunta}</h1>

@@ -5,6 +5,7 @@ import { Breadcrumbs } from "@/components/content/Breadcrumbs";
 import { RelatedLinks } from "@/components/content/RelatedLinks";
 import { JsonLd } from "@/components/content/JsonLd";
 import { absoluteUrl } from "@/lib/site";
+import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 
 export const metadata: Metadata = {
   title: "Cómo comparar presupuestos de instalación sin equivocarte",
@@ -18,6 +19,7 @@ const URL = "/guias/como-comparar-presupuestos-de-instalacion";
 export default function GuiaCompararPresupuestos() {
   return (
     <Container className="max-w-2xl py-12">
+      <PageViewTracker />
       <Breadcrumbs
         items={[{ label: "Inicio", href: "/" }, { label: "Guías", href: "/guias" }, { label: "Comparar presupuestos" }]}
       />

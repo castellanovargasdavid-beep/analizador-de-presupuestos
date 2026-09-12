@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { LinkButton } from "@/components/ui/Button";
 import { RangeBar } from "@/components/result/RangeBar";
 import { ArrowRightIcon, CheckCircleIcon, ShieldIcon } from "@/components/ui/icons";
+import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 
 export const metadata: Metadata = {
   title: "Presupuesto Claro — ¿Te están cobrando de más?",
@@ -60,6 +61,7 @@ const FAQS = [
 export default function HomePage() {
   return (
     <>
+      <PageViewTracker />
       <section className="border-b border-neutral-200 bg-gradient-to-b from-brand-50 to-white">
         <Container className="max-w-5xl py-16 text-center sm:py-24">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-100 px-3 py-1 text-sm font-semibold text-brand-800">

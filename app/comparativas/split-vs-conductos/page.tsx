@@ -12,6 +12,7 @@ import { loadPricingContext } from "@/lib/estimation/repository";
 import { evaluateEstimate } from "@/lib/estimation/engine";
 import { formatEUR } from "@/lib/format";
 import { absoluteUrl } from "@/lib/site";
+import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 
 export const metadata: Metadata = {
   title: "Split vs. conductos: qué sistema de aire acondicionado conviene",
@@ -65,6 +66,7 @@ export default async function SplitVsConductosPage() {
 
   return (
     <Container className="max-w-3xl py-12">
+      <PageViewTracker />
       <Breadcrumbs
         items={[
           { label: "Inicio", href: "/" },

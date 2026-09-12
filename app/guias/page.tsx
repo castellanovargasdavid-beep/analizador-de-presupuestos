@@ -4,6 +4,7 @@ import { Container } from "@/components/ui/Container";
 import { Card } from "@/components/ui/Card";
 import { Breadcrumbs } from "@/components/content/Breadcrumbs";
 import { GUIAS } from "@/lib/content/guias";
+import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 
 export const metadata: Metadata = {
   title: "Guías para no pagar de más",
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
 export default function GuiasIndexPage() {
   return (
     <Container className="max-w-3xl py-12">
+      <PageViewTracker />
       <Breadcrumbs items={[{ label: "Inicio", href: "/" }, { label: "Guías" }]} />
       <h1 className="mt-3 text-3xl font-bold text-neutral-950">Guías</h1>
       <p className="mt-4 text-neutral-700">Contenido de apoyo para usar mejor las calculadoras, no relleno de SEO.</p>

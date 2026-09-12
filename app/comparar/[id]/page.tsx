@@ -8,6 +8,8 @@ import { LinkButton } from "@/components/ui/Button";
 import { RangeBar } from "@/components/result/RangeBar";
 import { Breakdown } from "@/components/result/Breakdown";
 import { ShareActions } from "@/components/result/ShareActions";
+import { LeadRequestCard } from "@/components/leads/LeadRequestCard";
+import { TrackOnMount } from "@/components/analytics/TrackOnMount";
 import { getComparisonForDisplay } from "@/lib/estimation/repository";
 import { detectAlertSignals, materialesSharePctFromRanges, posiblesRazonesFor, preguntasRecomendadasFor } from "@/lib/estimation/compare";
 import { buildComparisonSummaryText } from "@/lib/estimation/summary";
@@ -91,6 +93,7 @@ export default async function CompararPage({ params }: { params: Promise<{ id: s
 
   return (
     <Container className="max-w-3xl py-12">
+      <TrackOnMount eventType="comparison_result_view" estimateId={estimate.id} comparisonId={id} />
       <nav aria-label="Breadcrumb" className="text-sm text-neutral-500 print:hidden">
         <Link href="/" className="hover:text-brand-700">
           Inicio
@@ -260,6 +263,8 @@ export default async function CompararPage({ params }: { params: Promise<{ id: s
           <LinkButton href="/aire-acondicionado/instalacion">Volver a la calculadora</LinkButton>
         </div>
       </Card>
+
+      <LeadRequestCard estimateId={estimate.id} comparisonId={id} />
 
       <p className="mt-8 text-center text-sm text-neutral-500">
         <Badge tone="neutral">Metodología {methodologyVersion}</Badge> — esto no es una tasación profesional ni una

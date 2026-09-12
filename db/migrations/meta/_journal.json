@@ -22,6 +22,13 @@
       "when": 1789170491072,
       "tag": "0002_youthful_hawkeye",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789205255486,
+      "tag": "0003_bent_odin",
+      "breakpoints": true
     }
   ]
 }
