@@ -4,10 +4,11 @@
  * (`compare.ts`) no importan Drizzle ni saben que existe una base de
  * datos, así que siguen siendo testeables con fixtures puros.
  */
-import { and, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import {
   budgetComparisons,
+  dataSources,
   estimateItems,
   estimateRanges,
   estimates,
@@ -119,6 +120,19 @@ export async function listMaterialLevels() {
 
 export async function listRegions() {
   return db.select().from(regions).orderBy(regions.name);
+}
+
+/** Para /fuentes — la transparencia de docs/01 convertida en página real, no solo en documento interno. */
+export async function listDataSources() {
+  return db.select().from(dataSources).orderBy(dataSources.confidence, dataSources.name);
+}
+
+/** Alimenta lib/content/territory-gate.ts: cuántas estimaciones propias hay para una región. */
+export async function countEstimatesByRegion(regionSlug: string): Promise<number> {
+  const [region] = await db.select().from(regions).where(eq(regions.slug, regionSlug)).limit(1);
+  if (!region) return 0;
+  const [row] = await db.select({ total: count() }).from(estimates).where(eq(estimates.regionId, region.id));
+  return row?.total ?? 0;
 }
 
 export async function persistEstimate(args: {

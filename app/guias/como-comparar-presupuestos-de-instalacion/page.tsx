@@ -1,27 +1,26 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { LinkButton } from "@/components/ui/Button";
+import { Breadcrumbs } from "@/components/content/Breadcrumbs";
+import { RelatedLinks } from "@/components/content/RelatedLinks";
+import { JsonLd } from "@/components/content/JsonLd";
+import { absoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Cómo comparar presupuestos de instalación sin equivocarte",
   description:
     "Qué exigir a cada presupuesto de instalación para poder compararlos de verdad, y las señales de alerta más habituales.",
+  alternates: { canonical: "/guias/como-comparar-presupuestos-de-instalacion" },
 };
+
+const URL = "/guias/como-comparar-presupuestos-de-instalacion";
 
 export default function GuiaCompararPresupuestos() {
   return (
     <Container className="max-w-2xl py-12">
-      <nav aria-label="Breadcrumb" className="text-sm text-neutral-500">
-        <Link href="/" className="hover:text-brand-700">
-          Inicio
-        </Link>{" "}
-        /{" "}
-        <Link href="/guias" className="hover:text-brand-700">
-          Guías
-        </Link>{" "}
-        / Comparar presupuestos
-      </nav>
+      <Breadcrumbs
+        items={[{ label: "Inicio", href: "/" }, { label: "Guías", href: "/guias" }, { label: "Comparar presupuestos" }]}
+      />
 
       <h1 className="mt-3 text-3xl font-bold text-neutral-950">
         Cómo comparar presupuestos de instalación sin equivocarte
@@ -62,6 +61,25 @@ export default function GuiaCompararPresupuestos() {
           Analiza tu presupuesto de aire acondicionado
         </LinkButton>
       </div>
+
+      <div className="mt-10">
+        <RelatedLinks
+          items={[
+            { href: "/aire-acondicionado/instalacion", label: "Calculadora de instalación de aire acondicionado" },
+            { href: "/metodologia", label: "Metodología" },
+          ]}
+        />
+      </div>
+
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: "Cómo comparar presupuestos de instalación sin equivocarte",
+          url: absoluteUrl(URL),
+          inLanguage: "es-ES",
+        }}
+      />
     </Container>
   );
 }

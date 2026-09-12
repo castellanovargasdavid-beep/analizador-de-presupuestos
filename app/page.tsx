@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: "Presupuesto Claro — ¿Te están cobrando de más?",
   description:
     "Calcula el rango de precio razonable para servicios del hogar en España y comprueba si el presupuesto que te han dado está dentro de lo habitual. Empieza por instalación de aire acondicionado.",
+  alternates: { canonical: "/" },
 };
 
 const EJEMPLOS = [

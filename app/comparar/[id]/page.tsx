@@ -12,6 +12,7 @@ import { getComparisonForDisplay } from "@/lib/estimation/repository";
 import { detectAlertSignals, materialesSharePctFromRanges, posiblesRazonesFor, preguntasRecomendadasFor } from "@/lib/estimation/compare";
 import { buildComparisonSummaryText } from "@/lib/estimation/summary";
 import { formatEUR, formatPct } from "@/lib/format";
+import { absoluteUrl } from "@/lib/site";
 import { AlertTriangleIcon } from "@/components/ui/icons";
 
 export const metadata: Metadata = {
@@ -85,7 +86,7 @@ export default async function CompararPage({ params }: { params: Promise<{ id: s
     senalesDeAlerta,
     posiblesRazones,
     preguntasRecomendadas,
-    url: `https://www.presupuestoclaro.es/comparar/${id}`,
+    url: absoluteUrl(`/comparar/${id}`),
   });
 
   return (

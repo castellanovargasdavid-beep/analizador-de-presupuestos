@@ -1,28 +1,38 @@
 import type { MetadataRoute } from "next";
-
-const BASE_URL = "https://www.presupuestoclaro.es";
+import { SITE_URL as BASE_URL } from "@/lib/site";
+import { GUIAS } from "@/lib/content/guias";
+import { PREGUNTAS } from "@/lib/content/preguntas";
 
 /**
- * Sitemap mínimo de la Fase de UX. Se generará dinámicamente desde
- * ServiceCategory/GuidePage en la Fase 8 (SEO técnico); de momento lista a
- * mano las páginas indexables que ya existen, tal como se decidió en
- * docs/02-estrategia-seo.md (sección 9).
+ * Páginas estáticas + las generadas por los registros de contenido
+ * (guías, preguntas) — así una guía o pregunta nueva entra sola en el
+ * sitemap con solo añadir la entrada al registro, sin tocar este archivo.
+ * Nunca incluye `/resultado/*` ni `/comparar/*` (noindex,follow) ni
+ * páginas de territorio sin generar (ver docs/04, sección de indexación).
  */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const paths = [
+  const staticPaths = [
     "",
     "/aire-acondicionado",
     "/aire-acondicionado/instalacion",
     "/aire-acondicionado/instalacion/analizar-presupuesto",
+    "/precios/aire-acondicionado-instalacion",
+    "/comparativas/split-vs-conductos",
     "/guias",
-    "/guias/como-comparar-presupuestos-de-instalacion",
+    "/preguntas",
     "/metodologia",
+    "/fuentes",
+    "/sobre-nosotros",
+    "/contacto",
     "/legal/privacidad",
     "/legal/cookies",
     "/legal/aviso-legal",
   ];
 
-  return paths.map((path) => ({
+  const guiaPaths = GUIAS.map((g) => `/guias/${g.slug}`);
+  const preguntaPaths = PREGUNTAS.map((p) => `/preguntas/${p.slug}`);
+
+  return [...staticPaths, ...guiaPaths, ...preguntaPaths].map((path) => ({
     url: `${BASE_URL}${path}`,
     lastModified: new Date(),
   }));

@@ -1,25 +1,24 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Card } from "@/components/ui/Card";
 import { ConfidenceTag } from "@/components/result/ConfidenceTag";
+import { Breadcrumbs } from "@/components/content/Breadcrumbs";
+import { RelatedLinks } from "@/components/content/RelatedLinks";
+import { JsonLd } from "@/components/content/JsonLd";
 import { RITE_UMBRAL_KW } from "@/lib/estimation/seed-data";
+import { absoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Metodología: cómo calculamos los precios",
   description:
     "Cómo se calcula cada rango de precio de la calculadora de aire acondicionado: fuentes, nivel de confianza y limitaciones. Sin autoridad inventada.",
+  alternates: { canonical: "/metodologia" },
 };
 
 export default function MetodologiaPage() {
   return (
     <Container className="max-w-3xl py-12">
-      <nav aria-label="Breadcrumb" className="text-sm text-neutral-500">
-        <Link href="/" className="hover:text-brand-700">
-          Inicio
-        </Link>{" "}
-        / Metodología
-      </nav>
+      <Breadcrumbs items={[{ label: "Inicio", href: "/" }, { label: "Metodología" }]} />
 
       <h1 className="mt-3 text-3xl font-bold text-neutral-950">¿Cómo calculamos estos precios?</h1>
       <p className="mt-4 text-lg text-neutral-700">
@@ -124,6 +123,26 @@ export default function MetodologiaPage() {
           de pedir o aceptar un presupuesto — nada más, nada menos.
         </p>
       </Card>
+
+      <div className="mt-10">
+        <RelatedLinks
+          items={[
+            { href: "/fuentes", label: "Ver todas las fuentes citadas", description: "Con fecha, alcance y fiabilidad de cada una." },
+            { href: "/aire-acondicionado/instalacion", label: "Ir a la calculadora" },
+            { href: "/sobre-nosotros", label: "Sobre nosotros" },
+          ]}
+        />
+      </div>
+
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: "¿Cómo calculamos estos precios?",
+          url: absoluteUrl("/metodologia"),
+          about: "Metodología de estimación de precios para instalación de aire acondicionado en España",
+        }}
+      />
     </Container>
   );
 }

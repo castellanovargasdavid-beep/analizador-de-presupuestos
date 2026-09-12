@@ -9,13 +9,16 @@ import { afterAll, describe, expect, it } from "vitest";
 import { evaluateEstimate } from "./engine";
 import { evaluateRite } from "./rite";
 import {
+  countEstimatesByRegion,
   getComparisonForDisplay,
   getEstimateForDisplay,
+  listRegions,
   loadPricingContext,
   persistEstimate,
   persistUserBudget,
 } from "./repository";
 import { compareBudget } from "./compare";
+import { canGenerateTerritoryPage, MIN_OWN_ESTIMATES_FOR_TERRITORY_PAGE } from "@/lib/content/territory-gate";
 import { toEstimationInput, type CalculatorFormValues } from "./validation";
 import { db } from "@/db/client";
 
@@ -92,6 +95,20 @@ describe.skipIf(!hasDatabase)("repository (integración con Postgres real)", () 
     expect(comparisonDisplay!.budgets[0].budget.verdict).toBe("por_encima");
     expect(comparisonDisplay!.budgets[0].lines).toHaveLength(1);
     expect(comparisonDisplay!.estimate.estimate.id).toBe(estimateId);
+  });
+
+  it("hoy ninguna región supera el umbral de datos propios para generar una página de territorio", async () => {
+    const allRegions = await listRegions();
+    expect(allRegions.length).toBeGreaterThan(0);
+    for (const region of allRegions) {
+      const ownEstimateCount = await countEstimatesByRegion(region.slug);
+      // Sanidad: si esto falla algún día es una BUENA noticia (hay suficiente
+      // dato propio) — pero entonces hay que construir la página de verdad,
+      // no subir el test para que pase.
+      expect(ownEstimateCount).toBeLessThan(MIN_OWN_ESTIMATES_FOR_TERRITORY_PAGE);
+      const gate = canGenerateTerritoryPage({ regionSlug: region.slug, ownEstimateCount, hasCitedMarketDifferential: false });
+      expect(gate.allowed).toBe(false);
+    }
   });
 });
 

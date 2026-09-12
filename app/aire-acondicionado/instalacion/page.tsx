@@ -1,34 +1,93 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
+import { Card } from "@/components/ui/Card";
 import { Wizard } from "@/components/calculator/Wizard";
+import { Breadcrumbs } from "@/components/content/Breadcrumbs";
+import { FAQSection } from "@/components/content/FAQSection";
+import { VariablesList, TipsList, MistakesList } from "@/components/content/InfoLists";
+import { RelatedLinks } from "@/components/content/RelatedLinks";
+import { SourcesNote } from "@/components/content/SourcesNote";
+import { JsonLd } from "@/components/content/JsonLd";
+import { RangeBar } from "@/components/result/RangeBar";
 import { RITE_UMBRAL_KW } from "@/lib/estimation/seed-data";
-import { listMaterialLevels, listRegions } from "@/lib/estimation/repository";
+import { loadPricingContext, listMaterialLevels, listRegions } from "@/lib/estimation/repository";
+import { evaluateEstimate } from "@/lib/estimation/engine";
+import { formatEUR } from "@/lib/format";
+import { absoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Precio de instalar aire acondicionado: calculadora orientativa",
   description:
     "Calcula el rango de precio razonable para instalar aire acondicionado en España según tipo de sistema, potencia, ubicación y calidad del equipo. Metodología transparente, sin registro.",
+  alternates: { canonical: "/aire-acondicionado/instalacion" },
 };
 
 // Regiones y niveles de material cambian poco; se revalida cada hora en vez
 // de exigir un redeploy completo para reflejar cambios en el seed.
 export const revalidate = 3600;
 
+const FAQ_ITEMS = [
+  {
+    question: "¿Necesito el certificado RITE para instalar aire acondicionado?",
+    answer: `Solo si la potencia nominal supera los ${RITE_UMBRAL_KW} kW: en ese caso el RITE exige memoria técnica y registro del certificado ante tu Comunidad Autónoma. Por debajo de ese umbral no se exige documentación adicional.`,
+  },
+  {
+    question: "¿Por qué mi presupuesto tiene un IVA del 21% y no del 10%?",
+    answer:
+      "El 10% reducido exige tres requisitos a la vez: persona física con uso particular, vivienda de más de 2 años, y que el equipo no supere el 40% del presupuesto. En instalaciones de aire acondicionado el equipo suele superar ese 40%, así que se aplica el 21% general salvo que compres el equipo por separado y contrates solo la instalación.",
+  },
+  {
+    question: "¿Cuánto cuesta retirar un equipo antiguo?",
+    answer:
+      "Si es para desecharlo, es una partida relativamente pequeña dentro del presupuesto. Si necesitas que lo desmonten para reutilizarlo en otra ubicación, suele costar más. Pídelo siempre como partida separada en el presupuesto.",
+  },
+  {
+    question: "¿Se puede confiar en el precio que da la calculadora?",
+    answer:
+      "Es una estimación orientativa, no una tasación. Cada partida indica si sale de normativa oficial, de catálogo real de mercado o de una heurística propia — con el detalle completo en la metodología.",
+  },
+];
+
+async function computeExample(overrides: Parameters<typeof evaluateEstimate>[0]["input"]) {
+  const context = await loadPricingContext("aire-acondicionado", "instalacion");
+  return evaluateEstimate({
+    factors: context.factors,
+    input: overrides,
+    uncertaintyBands: context.uncertaintyBands,
+    vatRates: context.vatRates,
+    vatEligibility: { clientePersonaFisicaUsoParticular: true, viviendaMasDeDosAnos: true },
+    serviceTypeVatReducedEligible: context.serviceTypeVatReducedEligible,
+  });
+}
+
 export default async function InstalacionPage() {
-  const [regions, materialLevels] = await Promise.all([listRegions(), listMaterialLevels()]);
+  const [regions, materialLevels, ejemploSimple, ejemploMultisplit] = await Promise.all([
+    listRegions(),
+    listMaterialLevels(),
+    computeExample({
+      selections: { systemType: "split-1x1", materialLevel: "media", retiradaEquipo: "no" },
+      quantities: { metrosLineaFrigorificaExtra: 0, canaletaVistaMetros: 0, potenciaKw: 3.5 },
+      flags: { necesitaBombaCondensados: false, instalacionElectricaDedicada: false, accesoDificil: false },
+      regionSlug: null,
+    }),
+    computeExample({
+      selections: { systemType: "split-2x1", materialLevel: "media", retiradaEquipo: "desechar" },
+      quantities: { metrosLineaFrigorificaExtra: 2, canaletaVistaMetros: 0, potenciaKw: 3.5 },
+      flags: { necesitaBombaCondensados: false, instalacionElectricaDedicada: false, accesoDificil: false },
+      regionSlug: null,
+    }),
+  ]);
+
   return (
     <Container className="max-w-3xl py-12">
-      <nav aria-label="Breadcrumb" className="text-sm text-neutral-500">
-        <Link href="/" className="hover:text-brand-700">
-          Inicio
-        </Link>{" "}
-        /{" "}
-        <Link href="/aire-acondicionado" className="hover:text-brand-700">
-          Aire acondicionado
-        </Link>{" "}
-        / Instalación
-      </nav>
+      <Breadcrumbs
+        items={[
+          { label: "Inicio", href: "/" },
+          { label: "Aire acondicionado", href: "/aire-acondicionado" },
+          { label: "Instalación" },
+        ]}
+      />
 
       <h1 className="mt-3 text-3xl font-bold tracking-tight text-neutral-950 sm:text-4xl">
         ¿Cuánto cuesta instalar aire acondicionado?
@@ -51,24 +110,105 @@ export default async function InstalacionPage() {
         <Wizard mode="calculadora" regions={regions} materialLevels={materialLevels} />
       </div>
 
-      <section className="mt-16 space-y-6 text-neutral-700">
-        <h2 className="text-xl font-bold text-neutral-950">Qué tenemos en cuenta y por qué</h2>
-        <p>
-          El precio de una instalación de aire acondicionado no depende solo del equipo: la potencia, el número de
-          unidades interiores, los metros de línea frigorífica, si hay que retirar un equipo antiguo y la calidad del
-          equipo elegido mueven el presupuesto de forma real y documentable. Por eso el formulario te lo pregunta,
-          en vez de darte un único número genérico.
-        </p>
-        <p>
-          Un dato normativo que casi nunca se menciona: si la potencia nominal supera los {RITE_UMBRAL_KW} kW, el
-          RITE exige memoria técnica y registro del certificado ante tu Comunidad Autónoma. Es un trámite real que
-          puede formar parte del presupuesto — nuestra calculadora te avisa si tu caso lo necesita.
-        </p>
-        <p>
-          Todas las cifras usadas indican de dónde salen y con qué nivel de confianza. Puedes ver el detalle completo
-          en la <Link href="/metodologia" className="font-semibold text-brand-700 hover:underline">metodología</Link>.
-        </p>
-      </section>
+      <div className="mt-16 space-y-16">
+        <section>
+          <h2 className="text-xl font-bold text-neutral-950">Ejemplos reales de cálculo</h2>
+          <p className="mt-1 text-sm text-neutral-500">
+            Calculados en directo con el mismo motor que usa la calculadora de arriba, no cifras fijas de un artículo.
+          </p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <Card>
+              <p className="text-sm font-semibold text-neutral-500">Split 1x1, gama media, sin retirada de equipo</p>
+              <p className="mt-2 text-2xl font-bold tabular-nums text-brand-800">
+                {formatEUR(ejemploSimple.total.min)} – {formatEUR(ejemploSimple.total.max)}
+              </p>
+              <div className="mt-4">
+                <RangeBar rangeMin={ejemploSimple.total.min} rangeMax={ejemploSimple.total.max} />
+              </div>
+            </Card>
+            <Card>
+              <p className="text-sm font-semibold text-neutral-500">
+                Multisplit 2x1, gama media, con retirada y 2 m de línea extra
+              </p>
+              <p className="mt-2 text-2xl font-bold tabular-nums text-brand-800">
+                {formatEUR(ejemploMultisplit.total.min)} – {formatEUR(ejemploMultisplit.total.max)}
+              </p>
+              <div className="mt-4">
+                <RangeBar rangeMin={ejemploMultisplit.total.min} rangeMax={ejemploMultisplit.total.max} />
+              </div>
+            </Card>
+          </div>
+        </section>
+
+        <VariablesList
+          items={[
+            "Tipo de sistema: split de 1, 2 o 3 unidades interiores, o por conductos.",
+            "Potencia del equipo y si supera el umbral de 5 kW del RITE.",
+            "Metros de línea frigorífica más allá de los incluidos en la instalación base.",
+            "Si hay que retirar un equipo antiguo, y si se desecha o se reutiliza en otra ubicación.",
+            "Gama del equipo: económica, media o premium.",
+            "Comunidad autónoma (solo hay señal de ajuste real en Madrid y Cataluña).",
+            "IVA aplicable: 10% reducido o 21% general, según tres requisitos legales a la vez.",
+          ]}
+        />
+
+        <TipsList
+          items={[
+            "Pide siempre que el presupuesto desglose equipo y mano de obra por separado, no una única línea.",
+            "Pregunta explícitamente cuántos metros de línea frigorífica están incluidos antes de firmar.",
+            "Si el equipo supera el 40% del presupuesto, pregunta si comprarlo por separado reduce el IVA de la instalación al 10%.",
+            "Exige el certificado o boletín de la instalación, no solo la factura del equipo.",
+          ]}
+        />
+
+        <MistakesList
+          items={[
+            "Aceptar un presupuesto con una única línea ('instalación aire acondicionado') sin desglose.",
+            "Comparar solo el precio total sin comprobar que todos los presupuestos incluyen el mismo alcance.",
+            "No preguntar por la retirada del equipo antiguo hasta que ya está todo decidido.",
+            "Asumir que un presupuesto más barato es mejor sin comprobar la gama del equipo.",
+          ]}
+        />
+
+        <FAQSection items={FAQ_ITEMS} />
+
+        <RelatedLinks
+          items={[
+            {
+              href: "/aire-acondicionado/instalacion/analizar-presupuesto",
+              label: "Analizar un presupuesto ya recibido",
+              description: "Compara tu presupuesto real contra este rango.",
+            },
+            {
+              href: "/precios/aire-acondicionado-instalacion",
+              label: "Precio medio de instalar aire acondicionado en España",
+              description: "Desglose de partidas y rangos de mercado citados.",
+            },
+            {
+              href: "/comparativas/split-vs-conductos",
+              label: "Split vs. conductos: qué sistema conviene",
+              description: "Comparativa de precio y cuándo elegir cada uno.",
+            },
+            {
+              href: "/guias/como-comparar-presupuestos-de-instalacion",
+              label: "Cómo comparar presupuestos de instalación",
+            },
+          ]}
+        />
+
+        <SourcesNote />
+      </div>
+
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Service",
+          serviceType: "Instalación de aire acondicionado",
+          areaServed: "ES",
+          provider: { "@type": "Organization", name: "Presupuesto Claro" },
+          url: absoluteUrl("/aire-acondicionado/instalacion"),
+        }}
+      />
     </Container>
   );
 }

@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
 
-export const metadata: Metadata = { title: "Aviso legal", robots: { index: true, follow: true } };
+export const metadata: Metadata = {
+  title: "Aviso legal",
+  robots: { index: true, follow: true },
+  alternates: { canonical: "/legal/aviso-legal" },
+};
 
 export default function AvisoLegalPage() {
   return (

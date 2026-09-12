@@ -2,34 +2,52 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Wizard } from "@/components/calculator/Wizard";
+import { Breadcrumbs } from "@/components/content/Breadcrumbs";
+import { FAQSection } from "@/components/content/FAQSection";
+import { MistakesList } from "@/components/content/InfoLists";
+import { RelatedLinks } from "@/components/content/RelatedLinks";
+import { SourcesNote } from "@/components/content/SourcesNote";
 import { listMaterialLevels, listRegions } from "@/lib/estimation/repository";
 
 export const metadata: Metadata = {
   title: "¿Es caro tu presupuesto de aire acondicionado? Compáralo",
   description:
     "Introduce el presupuesto que te han dado para instalar aire acondicionado y comprueba si está dentro del rango habitual, por encima o por debajo, con posibles razones y preguntas recomendadas.",
+  alternates: { canonical: "/aire-acondicionado/instalacion/analizar-presupuesto" },
 };
 
 export const revalidate = 3600;
+
+const FAQ_ITEMS = [
+  {
+    question: "¿Esto significa que mi instalador me está cobrando de más?",
+    answer:
+      "No necesariamente. Un presupuesto por encima del rango puede deberse a materiales de más calidad, dificultad de acceso, garantías incluidas o desplazamiento. La herramienta señala una diferencia, no juzga al profesional.",
+  },
+  {
+    question: "¿Qué partidas debería pedir que me desglosen?",
+    answer:
+      "Como mínimo: equipo (marca y modelo), mano de obra/instalación, metros de línea frigorífica incluidos, y si se incluye la retirada del equipo antiguo y el certificado de la instalación.",
+  },
+  {
+    question: "¿Necesito subir el PDF del presupuesto?",
+    answer:
+      "No. Escribes las partidas principales tú mismo (nombre, categoría e importe) — no hace falta ni cuenta ni subir ningún archivo.",
+  },
+];
 
 export default async function AnalizarPresupuestoPage() {
   const [regions, materialLevels] = await Promise.all([listRegions(), listMaterialLevels()]);
   return (
     <Container className="max-w-3xl py-12">
-      <nav aria-label="Breadcrumb" className="text-sm text-neutral-500">
-        <Link href="/" className="hover:text-brand-700">
-          Inicio
-        </Link>{" "}
-        /{" "}
-        <Link href="/aire-acondicionado" className="hover:text-brand-700">
-          Aire acondicionado
-        </Link>{" "}
-        /{" "}
-        <Link href="/aire-acondicionado/instalacion" className="hover:text-brand-700">
-          Instalación
-        </Link>{" "}
-        / Analizar presupuesto
-      </nav>
+      <Breadcrumbs
+        items={[
+          { label: "Inicio", href: "/" },
+          { label: "Aire acondicionado", href: "/aire-acondicionado" },
+          { label: "Instalación", href: "/aire-acondicionado/instalacion" },
+          { label: "Analizar presupuesto" },
+        ]}
+      />
 
       <h1 className="mt-3 text-3xl font-bold tracking-tight text-neutral-950 sm:text-4xl">
         ¿Te están cobrando de más por instalar aire acondicionado?
@@ -53,22 +71,35 @@ export default async function AnalizarPresupuestoPage() {
         <Wizard mode="analizador" regions={regions} materialLevels={materialLevels} />
       </div>
 
-      <section className="mt-16 space-y-4 text-neutral-700">
-        <h2 className="text-xl font-bold text-neutral-950">Señales de alerta habituales en un presupuesto</h2>
-        <ul className="list-disc space-y-2 pl-5">
-          <li>Partidas agrupadas en una sola línea (&ldquo;instalación aire acondicionado&rdquo;) sin desglose.</li>
-          <li>Descripciones vagas del equipo (&ldquo;primera marca&rdquo;, &ldquo;gama media&rdquo;) sin marca ni modelo.</li>
-          <li>Ausencia de certificado o boletín de la instalación.</li>
-          <li>Anticipos elevados sin justificar con compras concretas de material.</li>
-        </ul>
-        <p>
-          Compáralo también con nuestra{" "}
-          <Link href="/guias/como-comparar-presupuestos-de-instalacion" className="font-semibold text-brand-700 hover:underline">
-            guía para comparar presupuestos
-          </Link>
-          .
-        </p>
-      </section>
+      <div className="mt-16 space-y-16">
+        <MistakesList
+          items={[
+            "Partidas agrupadas en una sola línea ('instalación aire acondicionado') sin desglose.",
+            "Descripciones vagas del equipo ('primera marca', 'gama media') sin marca ni modelo.",
+            "Ausencia de certificado o boletín de la instalación.",
+            "Anticipos elevados sin justificar con compras concretas de material.",
+          ]}
+        />
+
+        <FAQSection items={FAQ_ITEMS} />
+
+        <RelatedLinks
+          items={[
+            {
+              href: "/aire-acondicionado/instalacion",
+              label: "Calculadora de instalación",
+              description: "Si aún no tienes presupuesto, empieza aquí.",
+            },
+            {
+              href: "/guias/como-comparar-presupuestos-de-instalacion",
+              label: "Cómo comparar presupuestos de instalación",
+            },
+            { href: "/metodologia", label: "Metodología" },
+          ]}
+        />
+
+        <SourcesNote />
+      </div>
     </Container>
   );
 }
