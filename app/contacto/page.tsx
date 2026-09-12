@@ -1,14 +1,14 @@
-import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
 import { Card } from "@/components/ui/Card";
 import { Breadcrumbs } from "@/components/content/Breadcrumbs";
 import { RelatedLinks } from "@/components/content/RelatedLinks";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Contacto",
   description: "Cómo contactar con Presupuesto Claro: dudas, corrección de datos o errores en la calculadora.",
-  alternates: { canonical: "/contacto" },
-};
+  path: "/contacto",
+});
 
 const CONTACT_EMAIL = "hola@presupuestoclaro.es";
 

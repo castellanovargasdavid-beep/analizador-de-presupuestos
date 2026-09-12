@@ -1,16 +1,20 @@
-import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
+import { Breadcrumbs } from "@/components/content/Breadcrumbs";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Cookies",
+  description:
+    "Presupuesto Claro no usa cookies de analítica ni de publicidad. Qué guardamos en tu navegador y por qué no hace falta un banner de consentimiento.",
+  path: "/legal/cookies",
   robots: { index: true, follow: true },
-  alternates: { canonical: "/legal/cookies" },
-};
+});
 
 export default function CookiesPage() {
   return (
     <Container className="max-w-2xl py-12 text-neutral-700">
-      <h1 className="text-3xl font-bold text-neutral-950">Cookies</h1>
+      <Breadcrumbs items={[{ label: "Inicio", href: "/" }, { label: "Cookies" }]} />
+      <h1 className="mt-3 text-3xl font-bold text-neutral-950">Cookies</h1>
       <div className="prose-neutral mt-6 space-y-6">
         <p>
           <strong>Borrador pendiente de revisión legal formal (LSSICE).</strong> No usamos cookies de analítica ni

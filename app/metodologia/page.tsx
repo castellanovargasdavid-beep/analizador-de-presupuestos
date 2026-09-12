@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
 import { Card } from "@/components/ui/Card";
 import { ConfidenceTag } from "@/components/result/ConfidenceTag";
@@ -7,13 +6,14 @@ import { RelatedLinks } from "@/components/content/RelatedLinks";
 import { JsonLd } from "@/components/content/JsonLd";
 import { RITE_UMBRAL_KW } from "@/lib/estimation/seed-data";
 import { absoluteUrl } from "@/lib/site";
+import { ARTICLE_AUTHOR, pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Metodología: cómo calculamos los precios",
   description:
     "Cómo se calcula cada rango de precio de la calculadora de aire acondicionado: fuentes, nivel de confianza y limitaciones. Sin autoridad inventada.",
-  alternates: { canonical: "/metodologia" },
-};
+  path: "/metodologia",
+});
 
 export default function MetodologiaPage() {
   return (
@@ -141,6 +141,10 @@ export default function MetodologiaPage() {
           headline: "¿Cómo calculamos estos precios?",
           url: absoluteUrl("/metodologia"),
           about: "Metodología de estimación de precios para instalación de aire acondicionado en España",
+          author: ARTICLE_AUTHOR,
+          datePublished: "2026-09-11",
+          dateModified: "2026-09-12",
+          inLanguage: "es-ES",
         }}
       />
     </Container>

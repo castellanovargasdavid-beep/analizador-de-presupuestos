@@ -1,14 +1,14 @@
-import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
 import { Card } from "@/components/ui/Card";
 import { Breadcrumbs } from "@/components/content/Breadcrumbs";
 import { RelatedLinks } from "@/components/content/RelatedLinks";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Sobre nosotros",
-  description: "Qué es Presupuesto Claro, por qué existe y qué principios sigue.",
-  alternates: { canonical: "/sobre-nosotros" },
-};
+  description: "Qué es Presupuesto Claro, por qué existe y qué principios sigue: rangos honestos, nunca acusaciones, con la fuente de cada dato a la vista.",
+  path: "/sobre-nosotros",
+});
 
 export default function SobreNosotrosPage() {
   return (

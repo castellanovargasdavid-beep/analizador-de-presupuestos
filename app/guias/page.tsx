@@ -1,16 +1,16 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Card } from "@/components/ui/Card";
 import { Breadcrumbs } from "@/components/content/Breadcrumbs";
 import { GUIAS } from "@/lib/content/guias";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Guías para no pagar de más",
   description: "Guías prácticas para comparar presupuestos y contratar servicios del hogar con criterio.",
-  alternates: { canonical: "/guias" },
-};
+  path: "/guias",
+});
 
 export default function GuiasIndexPage() {
   return (

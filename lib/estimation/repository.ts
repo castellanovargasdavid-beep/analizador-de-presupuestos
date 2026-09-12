@@ -4,6 +4,7 @@
  * (`compare.ts`) no importan Drizzle ni saben que existe una base de
  * datos, así que siguen siendo testeables con fixtures puros.
  */
+import { cache } from "react";
 import { and, count, desc, eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import {
@@ -253,7 +254,20 @@ export async function persistUserBudget(args: {
   return comparison.id;
 }
 
-export async function getEstimateForDisplay(id: string) {
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * `cache()` de React: dentro de la misma request, `generateMetadata` y el
+ * componente de página piden la misma Estimate/Comparison (para el OG
+ * dinámico y para el render). Sin este cache, cada page view haría el doble
+ * de consultas a Postgres; con él, la segunda llamada es gratis.
+ */
+export const getEstimateForDisplay = cache(async (id: string) => {
+  // Un id con formato inválido no es "no encontrado" para Postgres: es un
+  // error de tipo (uuid) que rompería la query con un 500. Una URL
+  // manipulada o mal formada (un bot, un enlace roto) debe dar 404 limpio.
+  if (!UUID_RE.test(id)) return null;
+
   const [estimate] = await db.select().from(estimates).where(eq(estimates.id, id)).limit(1);
   if (!estimate) return null;
 
@@ -262,14 +276,16 @@ export async function getEstimateForDisplay(id: string) {
   const ranges = await db.select().from(estimateRanges).where(eq(estimateRanges.estimateId, id));
 
   return { estimate, items, ranges, methodologyVersion: rule ? `v${rule.version}` : "desconocida" };
-}
+});
 
 /**
  * Devuelve TODOS los presupuestos de una comparación (hoy siempre 1, pero
  * la forma ya es un array para no tener que cambiar el contrato de esta
  * función cuando se permita añadir un 2º/3º presupuesto a comparar).
  */
-export async function getComparisonForDisplay(comparisonId: string) {
+export const getComparisonForDisplay = cache(async (comparisonId: string) => {
+  if (!UUID_RE.test(comparisonId)) return null;
+
   const [comparison] = await db.select().from(budgetComparisons).where(eq(budgetComparisons.id, comparisonId)).limit(1);
   if (!comparison) return null;
 
@@ -295,4 +311,4 @@ export async function getComparisonForDisplay(comparisonId: string) {
   );
 
   return { comparison, budgets, estimate: estimateData };
-}
+});

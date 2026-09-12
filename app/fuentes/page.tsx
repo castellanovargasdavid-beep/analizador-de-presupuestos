@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
 import { Card } from "@/components/ui/Card";
 import { Breadcrumbs } from "@/components/content/Breadcrumbs";
@@ -6,13 +5,14 @@ import { RelatedLinks } from "@/components/content/RelatedLinks";
 import { ConfidenceTag } from "@/components/result/ConfidenceTag";
 import { listDataSources } from "@/lib/estimation/repository";
 import type { Confidence } from "@/lib/estimation/types";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Fuentes",
   description:
     "Todas las fuentes usadas para calcular los rangos de precio de Presupuesto Claro: qué son, cuándo se consultaron y con qué fiabilidad.",
-  alternates: { canonical: "/fuentes" },
-};
+  path: "/fuentes",
+});
 
 export const revalidate = 3600;
 

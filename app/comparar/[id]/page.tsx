@@ -8,6 +8,7 @@ import { LinkButton } from "@/components/ui/Button";
 import { RangeBar } from "@/components/result/RangeBar";
 import { Breakdown } from "@/components/result/Breakdown";
 import { ShareActions } from "@/components/result/ShareActions";
+import { Breadcrumbs } from "@/components/content/Breadcrumbs";
 import { LeadRequestCard } from "@/components/leads/LeadRequestCard";
 import { TrackOnMount } from "@/components/analytics/TrackOnMount";
 import { getComparisonForDisplay } from "@/lib/estimation/repository";
@@ -16,11 +17,26 @@ import { buildComparisonSummaryText } from "@/lib/estimation/summary";
 import { formatEUR, formatPct } from "@/lib/format";
 import { absoluteUrl } from "@/lib/site";
 import { AlertTriangleIcon } from "@/components/ui/icons";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
-  title: "¿Está tu presupuesto dentro de lo razonable?",
-  robots: { index: false, follow: true },
+const VERDICT_DESCRIPTION: Record<string, string> = {
+  dentro_de_rango: "Este presupuesto está dentro del rango orientativo calculado para esta instalación de aire acondicionado.",
+  por_encima: "Este presupuesto está por encima del rango orientativo calculado, con posibles razones y preguntas recomendadas.",
+  por_debajo: "Este presupuesto está por debajo del rango orientativo calculado: conviene revisar qué incluye exactamente.",
 };
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const data = await getComparisonForDisplay(id);
+  const description = data ? VERDICT_DESCRIPTION[data.budgets[0].budget.verdict] : undefined;
+
+  return pageMetadata({
+    title: "¿Está tu presupuesto dentro de lo razonable?",
+    description,
+    path: `/comparar/${id}`,
+    robots: { index: false, follow: true },
+  });
+}
 
 const VERDICT_COPY: Record<string, { tone: Tone; titulo: string; explicacion: string }> = {
   dentro_de_rango: {
@@ -94,16 +110,13 @@ export default async function CompararPage({ params }: { params: Promise<{ id: s
   return (
     <Container className="max-w-3xl py-12">
       <TrackOnMount eventType="comparison_result_view" estimateId={estimate.id} comparisonId={id} />
-      <nav aria-label="Breadcrumb" className="text-sm text-neutral-500 print:hidden">
-        <Link href="/" className="hover:text-brand-700">
-          Inicio
-        </Link>{" "}
-        /{" "}
-        <Link href="/aire-acondicionado/instalacion" className="hover:text-brand-700">
-          Instalación de aire acondicionado
-        </Link>{" "}
-        / Comparación
-      </nav>
+      <Breadcrumbs
+        items={[
+          { label: "Inicio", href: "/" },
+          { label: "Instalación de aire acondicionado", href: "/aire-acondicionado/instalacion" },
+          { label: "Comparación" },
+        ]}
+      />
 
       <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
         <h1 className="text-2xl font-bold text-neutral-950 sm:text-3xl">¿Es razonable tu presupuesto?</h1>

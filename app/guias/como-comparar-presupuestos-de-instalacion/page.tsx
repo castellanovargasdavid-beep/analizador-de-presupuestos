@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
 import { LinkButton } from "@/components/ui/Button";
 import { Breadcrumbs } from "@/components/content/Breadcrumbs";
@@ -6,13 +5,14 @@ import { RelatedLinks } from "@/components/content/RelatedLinks";
 import { JsonLd } from "@/components/content/JsonLd";
 import { absoluteUrl } from "@/lib/site";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
+import { ARTICLE_AUTHOR, pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Cómo comparar presupuestos de instalación sin equivocarte",
   description:
     "Qué exigir a cada presupuesto de instalación para poder compararlos de verdad, y las señales de alerta más habituales.",
-  alternates: { canonical: "/guias/como-comparar-presupuestos-de-instalacion" },
-};
+  path: "/guias/como-comparar-presupuestos-de-instalacion",
+});
 
 const URL = "/guias/como-comparar-presupuestos-de-instalacion";
 
@@ -79,6 +79,9 @@ export default function GuiaCompararPresupuestos() {
           "@type": "Article",
           headline: "Cómo comparar presupuestos de instalación sin equivocarte",
           url: absoluteUrl(URL),
+          author: ARTICLE_AUTHOR,
+          datePublished: "2026-09-11",
+          dateModified: "2026-09-12",
           inLanguage: "es-ES",
         }}
       />

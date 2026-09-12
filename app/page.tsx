@@ -1,31 +1,24 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Card } from "@/components/ui/Card";
 import { LinkButton } from "@/components/ui/Button";
 import { RangeBar } from "@/components/result/RangeBar";
+import { FAQSection } from "@/components/content/FAQSection";
 import { ArrowRightIcon, CheckCircleIcon, ShieldIcon } from "@/components/ui/icons";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
+import { pageMetadata } from "@/lib/metadata";
+import { loadPricingContext } from "@/lib/estimation/repository";
+import { evaluateEstimate } from "@/lib/estimation/engine";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Presupuesto Claro — ¿Te están cobrando de más?",
   description:
-    "Calcula el rango de precio razonable para servicios del hogar en España y comprueba si el presupuesto que te han dado está dentro de lo habitual. Empieza por instalación de aire acondicionado.",
-  alternates: { canonical: "/" },
-};
+    "Calcula el rango de precio razonable para un servicio del hogar y comprueba si tu presupuesto está dentro de lo habitual. Empieza por aire acondicionado.",
+  path: "/",
+  isHome: true,
+});
 
-const EJEMPLOS = [
-  {
-    titulo: "Split 1x1, gama media, instalación estándar",
-    rango: { min: 780, max: 1180 },
-    detalle: "3,5 kW · 3 m de línea incluidos · sin retirada de equipo antiguo",
-  },
-  {
-    titulo: "Multisplit 2x1, gama media, con retirada de equipo",
-    rango: { min: 1750, max: 2600 },
-    detalle: "2 unidades interiores · retirada de equipo antiguo · 2 m de línea adicional",
-  },
-];
+export const revalidate = 3600;
 
 const CATEGORIAS = [
   { nombre: "Aire acondicionado", href: "/aire-acondicionado", activo: true },
@@ -38,27 +31,85 @@ const CATEGORIAS = [
 
 const FAQS = [
   {
-    pregunta: "¿Esto es una tasación oficial?",
-    respuesta:
+    question: "¿Esto es una tasación oficial?",
+    answer:
       "No. Es una estimación orientativa basada en rangos de mercado y, cuando existen, en normativa oficial. No sustituye un peritaje ni una tasación profesional, y no tiene validez legal.",
   },
   {
-    pregunta: "¿De dónde salen los rangos de precio?",
-    respuesta:
+    question: "¿De dónde salen los rangos de precio?",
+    answer:
       "De una combinación de normativa oficial (RITE), precios de catálogo reales de instaladores y agregadores de mercado. Cada cifra de la calculadora indica su nivel de confianza. Todo el detalle está en la página de metodología.",
   },
   {
-    pregunta: "Si mi presupuesto está por encima del rango, ¿significa que me están engañando?",
-    respuesta:
+    question: "Si mi presupuesto está por encima del rango, ¿significa que me están engañando?",
+    answer:
       "No necesariamente. Puede haber diferencias por la gama del equipo, dificultad de acceso, materiales o garantías incluidas que nuestro formulario no ha capturado. Por eso mostramos posibles razones y preguntas recomendadas, nunca una acusación.",
   },
   {
-    pregunta: "¿Tengo que registrarme para usar la herramienta?",
-    respuesta: "No. Puedes calcular y comparar tu presupuesto sin crear ninguna cuenta.",
+    question: "¿Tengo que registrarme para usar la herramienta?",
+    answer: "No. Puedes calcular y comparar tu presupuesto sin crear ninguna cuenta.",
   },
 ];
 
-export default function HomePage() {
+const PASOS = [
+  {
+    titulo: "Describe el trabajo",
+    texto: "Tipo de sistema, potencia, ubicación y otros factores que mueven el precio.",
+  },
+  {
+    titulo: "Obtén un rango, no un número mágico",
+    texto: "Una estimación orientativa con el desglose por partidas y la fuente de cada dato.",
+  },
+  {
+    titulo: "Compara tu presupuesto real",
+    texto: "Si ya tienes un presupuesto, introdúcelo y te decimos si está dentro de lo esperado.",
+  },
+];
+
+export default async function HomePage() {
+  const context = await loadPricingContext("aire-acondicionado", "instalacion");
+  const baseVatEligibility = { clientePersonaFisicaUsoParticular: true, viviendaMasDeDosAnos: true };
+
+  function evaluate(overrides: {
+    systemType: string;
+    metrosLineaFrigorificaExtra: number;
+    retiradaEquipo: "no" | "desechar" | "reutilizar";
+  }) {
+    return evaluateEstimate({
+      factors: context.factors,
+      input: {
+        selections: { systemType: overrides.systemType, materialLevel: "media", retiradaEquipo: overrides.retiradaEquipo },
+        quantities: {
+          metrosLineaFrigorificaExtra: overrides.metrosLineaFrigorificaExtra,
+          canaletaVistaMetros: 0,
+          potenciaKw: 3.5,
+        },
+        flags: { necesitaBombaCondensados: false, instalacionElectricaDedicada: false, accesoDificil: false },
+        regionSlug: null,
+      },
+      uncertaintyBands: context.uncertaintyBands,
+      vatRates: context.vatRates,
+      vatEligibility: baseVatEligibility,
+      serviceTypeVatReducedEligible: context.serviceTypeVatReducedEligible,
+    });
+  }
+
+  const ejemploEstandar = evaluate({ systemType: "split-1x1", metrosLineaFrigorificaExtra: 0, retiradaEquipo: "no" });
+  const ejemploMultisplit = evaluate({ systemType: "split-2x1", metrosLineaFrigorificaExtra: 2, retiradaEquipo: "desechar" });
+
+  const EJEMPLOS = [
+    {
+      titulo: "Split 1x1, gama media, instalación estándar",
+      rango: ejemploEstandar.total,
+      detalle: "3,5 kW · 3 m de línea incluidos · sin retirada de equipo antiguo",
+    },
+    {
+      titulo: "Multisplit 2x1, gama media, con retirada de equipo",
+      rango: ejemploMultisplit.total,
+      detalle: "2 unidades interiores · retirada de equipo antiguo · 2 m de línea adicional",
+    },
+  ];
+
   return (
     <>
       <PageViewTracker />
@@ -91,12 +142,12 @@ export default function HomePage() {
         <Container>
           <h2 className="text-center text-2xl font-bold text-neutral-950">Así se ve una estimación</h2>
           <p className="mx-auto mt-2 max-w-xl text-center text-neutral-700">
-            Dos ejemplos ilustrativos con casos habituales de instalación de aire acondicionado.
+            Dos casos habituales, calculados en vivo con el mismo motor que usa la calculadora completa.
           </p>
           <div className="mt-10 grid gap-6 sm:grid-cols-2">
             {EJEMPLOS.map((ej) => (
               <Card key={ej.titulo}>
-                <p className="text-sm font-semibold text-neutral-500">Ejemplo ilustrativo</p>
+                <p className="text-sm font-semibold text-neutral-500">Ejemplo calculado en vivo</p>
                 <h3 className="mt-1 font-bold text-neutral-950">{ej.titulo}</h3>
                 <p className="mt-1 text-sm text-neutral-500">{ej.detalle}</p>
                 <div className="mt-6">
@@ -141,33 +192,17 @@ export default function HomePage() {
       <section className="py-16">
         <Container>
           <h2 className="text-center text-2xl font-bold text-neutral-950">Cómo funciona</h2>
-          <div className="mt-10 grid gap-8 sm:grid-cols-3">
-            {[
-              {
-                paso: "1",
-                titulo: "Describe el trabajo",
-                texto: "Tipo de sistema, potencia, ubicación y otros factores que mueven el precio.",
-              },
-              {
-                paso: "2",
-                titulo: "Obtén un rango, no un número mágico",
-                texto: "Una estimación orientativa con el desglose por partidas y la fuente de cada dato.",
-              },
-              {
-                paso: "3",
-                titulo: "Compara tu presupuesto real",
-                texto: "Si ya tienes un presupuesto, introdúcelo y te decimos si está dentro de lo esperado.",
-              },
-            ].map((p) => (
-              <div key={p.paso}>
+          <ol className="mt-10 grid list-none gap-8 sm:grid-cols-3">
+            {PASOS.map((p, i) => (
+              <li key={p.titulo}>
                 <div className="flex size-9 items-center justify-center rounded-full bg-brand-600 font-bold text-white">
-                  {p.paso}
+                  {i + 1}
                 </div>
                 <h3 className="mt-4 font-bold text-neutral-950">{p.titulo}</h3>
                 <p className="mt-1 text-sm text-neutral-700">{p.texto}</p>
-              </div>
+              </li>
             ))}
-          </div>
+          </ol>
         </Container>
       </section>
 
@@ -199,17 +234,7 @@ export default function HomePage() {
       {/* FAQ */}
       <section className="py-16">
         <Container className="max-w-3xl">
-          <h2 className="text-center text-2xl font-bold text-neutral-950">Preguntas frecuentes</h2>
-          <div className="mt-8 divide-y divide-neutral-200">
-            {FAQS.map((f) => (
-              <details key={f.pregunta} className="group py-4">
-                <summary className="cursor-pointer list-none font-semibold text-neutral-950 marker:content-none">
-                  {f.pregunta}
-                </summary>
-                <p className="mt-2 text-neutral-700">{f.respuesta}</p>
-              </details>
-            ))}
-          </div>
+          <FAQSection title="Preguntas frecuentes" items={FAQS} />
         </Container>
       </section>
 

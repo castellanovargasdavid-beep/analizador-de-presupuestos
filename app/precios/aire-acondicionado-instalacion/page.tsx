@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
 import { Breadcrumbs } from "@/components/content/Breadcrumbs";
 import { FAQSection } from "@/components/content/FAQSection";
@@ -12,13 +11,14 @@ import { evaluateEstimate } from "@/lib/estimation/engine";
 import { formatEUR } from "@/lib/format";
 import { absoluteUrl } from "@/lib/site";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
+import { ARTICLE_AUTHOR, pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Precio medio de instalar aire acondicionado en España",
   description:
-    "Rango orientativo de precio por tipo de sistema y gama, con desglose de partidas y fuentes citadas. Calculado con el mismo motor que la calculadora, no cifras fijas de un artículo.",
-  alternates: { canonical: "/precios/aire-acondicionado-instalacion" },
-};
+    "Rango orientativo de precio por tipo de sistema y gama, con desglose de partidas y fuentes citadas. Calculado en vivo, no cifras fijas de un artículo.",
+  path: "/precios/aire-acondicionado-instalacion",
+});
 
 export const revalidate = 3600;
 
@@ -198,6 +198,9 @@ export default async function PreciosInstalacionPage() {
           "@type": "Article",
           headline: "Precio medio de instalar aire acondicionado en España",
           url: absoluteUrl("/precios/aire-acondicionado-instalacion"),
+          author: ARTICLE_AUTHOR,
+          datePublished: "2026-09-12",
+          dateModified: "2026-09-12",
           inLanguage: "es-ES",
         }}
       />

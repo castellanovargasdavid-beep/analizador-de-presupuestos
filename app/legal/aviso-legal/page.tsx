@@ -1,16 +1,20 @@
-import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
+import { Breadcrumbs } from "@/components/content/Breadcrumbs";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Aviso legal",
+  description:
+    "Naturaleza no vinculante de las estimaciones de Presupuesto Claro: no son una tasación profesional ni un presupuesto con validez legal.",
+  path: "/legal/aviso-legal",
   robots: { index: true, follow: true },
-  alternates: { canonical: "/legal/aviso-legal" },
-};
+});
 
 export default function AvisoLegalPage() {
   return (
     <Container className="max-w-2xl py-12 text-neutral-700">
-      <h1 className="text-3xl font-bold text-neutral-950">Aviso legal</h1>
+      <Breadcrumbs items={[{ label: "Inicio", href: "/" }, { label: "Aviso legal" }]} />
+      <h1 className="mt-3 text-3xl font-bold text-neutral-950">Aviso legal</h1>
       <div className="prose-neutral mt-6 space-y-4">
         <p>
           <strong>Borrador pendiente de revisión legal.</strong> Este texto es un marcador de posición para la fase

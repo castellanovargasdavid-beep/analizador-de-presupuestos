@@ -1,12 +1,12 @@
-import type { Metadata } from "next";
 import { ServiceHubTemplate } from "@/components/content/ServiceHubTemplate";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Aire acondicionado: calculadora de precios e instalación",
   description:
-    "Comprueba el rango de precio razonable para instalar o mantener aire acondicionado en España, con metodología transparente.",
-  alternates: { canonical: "/aire-acondicionado" },
-};
+    "Comprueba el rango de precio razonable para instalar aire acondicionado en España, con metodología transparente.",
+  path: "/aire-acondicionado",
+});
 
 export default function AireAcondicionadoHub() {
   return (

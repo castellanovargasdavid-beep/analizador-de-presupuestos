@@ -5,14 +5,35 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { JsonLd } from "@/components/content/JsonLd";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
+const DEFAULT_TITLE = "Presupuesto Claro — ¿Te están cobrando de más?";
+const DEFAULT_DESCRIPTION =
+  "Calcula el rango de precio razonable para tu instalación de aire acondicionado y comprueba si el presupuesto que te han dado está dentro de lo habitual en España.";
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Presupuesto Claro — ¿Te están cobrando de más?",
+    default: DEFAULT_TITLE,
     template: "%s · Presupuesto Claro",
   },
-  description:
-    "Calcula el rango de precio razonable para tu instalación de aire acondicionado y comprueba si el presupuesto que te han dado está dentro de lo habitual en España.",
+  description: DEFAULT_DESCRIPTION,
+  // Red de seguridad: toda página propia define su propio openGraph/twitter
+  // vía lib/metadata.ts (pageMetadata), pero si alguna nueva se olvidara,
+  // hereda esto en vez de quedarse sin vista previa social.
+  openGraph: {
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    url: "/",
+    siteName: SITE_NAME,
+    locale: "es_ES",
+    type: "website",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, type: "image/png" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, type: "image/png" }],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

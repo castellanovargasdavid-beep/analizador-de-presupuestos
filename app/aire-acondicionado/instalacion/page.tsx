@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Card } from "@/components/ui/Card";
@@ -15,13 +14,14 @@ import { loadPricingContext, listMaterialLevels, listRegions } from "@/lib/estim
 import { evaluateEstimate } from "@/lib/estimation/engine";
 import { formatEUR } from "@/lib/format";
 import { absoluteUrl } from "@/lib/site";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Precio de instalar aire acondicionado: calculadora orientativa",
   description:
-    "Calcula el rango de precio razonable para instalar aire acondicionado en España según tipo de sistema, potencia, ubicación y calidad del equipo. Metodología transparente, sin registro.",
-  alternates: { canonical: "/aire-acondicionado/instalacion" },
-};
+    "Calcula el rango de precio razonable para instalar aire acondicionado según sistema, potencia y ubicación. Metodología transparente, sin registro.",
+  path: "/aire-acondicionado/instalacion",
+});
 
 // Regiones y niveles de material cambian poco; se revalida cada hora en vez
 // de exigir un redeploy completo para reflejar cambios en el seed.

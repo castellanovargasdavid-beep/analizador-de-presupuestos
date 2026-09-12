@@ -1,17 +1,21 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
+import { Breadcrumbs } from "@/components/content/Breadcrumbs";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Privacidad",
+  description:
+    "Qué datos guarda Presupuesto Claro al usar la calculadora, al solicitar presupuestos a profesionales y en la analítica propia sin cookies de terceros.",
+  path: "/legal/privacidad",
   robots: { index: true, follow: true },
-  alternates: { canonical: "/legal/privacidad" },
-};
+});
 
 export default function PrivacidadPage() {
   return (
     <Container className="max-w-2xl py-12 text-neutral-700">
-      <h1 className="text-3xl font-bold text-neutral-950">Privacidad</h1>
+      <Breadcrumbs items={[{ label: "Inicio", href: "/" }, { label: "Privacidad" }]} />
+      <h1 className="mt-3 text-3xl font-bold text-neutral-950">Privacidad</h1>
       <div className="prose-neutral mt-6 space-y-6">
         <p>
           <strong>Borrador pendiente de revisión legal formal (RGPD/LOPDGDD).</strong> Describe honestamente qué

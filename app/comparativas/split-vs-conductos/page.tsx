@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
 import { Breadcrumbs } from "@/components/content/Breadcrumbs";
 import { ComparisonTable } from "@/components/content/ComparisonTable";
@@ -13,13 +12,14 @@ import { evaluateEstimate } from "@/lib/estimation/engine";
 import { formatEUR } from "@/lib/format";
 import { absoluteUrl } from "@/lib/site";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
+import { ARTICLE_AUTHOR, pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Split vs. conductos: qué sistema de aire acondicionado conviene",
   description:
-    "Diferencias reales de precio y de uso entre un sistema split y uno por conductos, con rangos calculados en vivo para decidir con criterio.",
-  alternates: { canonical: "/comparativas/split-vs-conductos" },
-};
+    "Diferencias reales de precio y de uso entre un split y uno por conductos, con rangos calculados en vivo para decidir con criterio.",
+  path: "/comparativas/split-vs-conductos",
+});
 
 export const revalidate = 3600;
 
@@ -151,6 +151,9 @@ export default async function SplitVsConductosPage() {
           "@type": "Article",
           headline: "Split vs. conductos: qué sistema de aire acondicionado conviene",
           url: absoluteUrl("/comparativas/split-vs-conductos"),
+          author: ARTICLE_AUTHOR,
+          datePublished: "2026-09-12",
+          dateModified: "2026-09-12",
           inLanguage: "es-ES",
         }}
       />

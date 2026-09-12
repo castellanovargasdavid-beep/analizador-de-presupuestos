@@ -8,6 +8,11 @@ import { JsonLd } from "@/components/content/JsonLd";
 import { getPregunta, PREGUNTAS } from "@/lib/content/preguntas";
 import { absoluteUrl } from "@/lib/site";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
+import { ARTICLE_AUTHOR, pageMetadata } from "@/lib/metadata";
+
+// Fecha real (verificable en git log) en la que se añadió lib/content/preguntas.ts —
+// las tres preguntas se publicaron juntas en ese commit.
+const PREGUNTAS_PUBLISHED_AT = "2026-09-12";
 
 // Conjunto cerrado: solo se sirven las preguntas registradas en
 // lib/content/preguntas.ts. `dynamicParams = false` hace que cualquier
@@ -23,11 +28,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const pregunta = getPregunta(slug);
   if (!pregunta) return {};
-  return {
+  return pageMetadata({
     title: pregunta.pregunta,
     description: pregunta.respuestaCorta,
-    alternates: { canonical: `/preguntas/${pregunta.slug}` },
-  };
+    path: `/preguntas/${pregunta.slug}`,
+  });
 }
 
 export default async function PreguntaPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -76,6 +81,9 @@ export default async function PreguntaPage({ params }: { params: Promise<{ slug:
           "@type": "Article",
           headline: pregunta.pregunta,
           url: absoluteUrl(`/preguntas/${pregunta.slug}`),
+          author: ARTICLE_AUTHOR,
+          datePublished: PREGUNTAS_PUBLISHED_AT,
+          dateModified: PREGUNTAS_PUBLISHED_AT,
           inLanguage: "es-ES",
         }}
       />

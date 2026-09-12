@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Wizard } from "@/components/calculator/Wizard";
@@ -7,14 +6,17 @@ import { FAQSection } from "@/components/content/FAQSection";
 import { MistakesList } from "@/components/content/InfoLists";
 import { RelatedLinks } from "@/components/content/RelatedLinks";
 import { SourcesNote } from "@/components/content/SourcesNote";
+import { JsonLd } from "@/components/content/JsonLd";
 import { listMaterialLevels, listRegions } from "@/lib/estimation/repository";
+import { absoluteUrl } from "@/lib/site";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "¿Es caro tu presupuesto de aire acondicionado? Compáralo",
   description:
-    "Introduce el presupuesto que te han dado para instalar aire acondicionado y comprueba si está dentro del rango habitual, por encima o por debajo, con posibles razones y preguntas recomendadas.",
-  alternates: { canonical: "/aire-acondicionado/instalacion/analizar-presupuesto" },
-};
+    "Introduce el presupuesto que te han dado y comprueba si está dentro del rango habitual, con posibles razones y preguntas recomendadas.",
+  path: "/aire-acondicionado/instalacion/analizar-presupuesto",
+});
 
 export const revalidate = 3600;
 
@@ -100,6 +102,17 @@ export default async function AnalizarPresupuestoPage() {
 
         <SourcesNote />
       </div>
+
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Service",
+          serviceType: "Comparación de presupuesto de instalación de aire acondicionado",
+          areaServed: "ES",
+          provider: { "@type": "Organization", name: "Presupuesto Claro" },
+          url: absoluteUrl("/aire-acondicionado/instalacion/analizar-presupuesto"),
+        }}
+      />
     </Container>
   );
 }

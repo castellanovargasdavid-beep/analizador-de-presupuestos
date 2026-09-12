@@ -97,6 +97,15 @@ describe.skipIf(!hasDatabase)("repository (integración con Postgres real)", () 
     expect(comparisonDisplay!.estimate.estimate.id).toBe(estimateId);
   });
 
+  it("devuelve null (no lanza) para un id con formato inválido, en vez de un error 500 de Postgres", async () => {
+    await expect(getEstimateForDisplay("does-not-exist")).resolves.toBeNull();
+    await expect(getComparisonForDisplay("not-a-uuid-either")).resolves.toBeNull();
+  });
+
+  it("devuelve null para un uuid con formato válido que no existe en la base de datos", async () => {
+    await expect(getEstimateForDisplay("00000000-0000-0000-0000-000000000000")).resolves.toBeNull();
+  });
+
   it("hoy ninguna región supera el umbral de datos propios para generar una página de territorio", async () => {
     const allRegions = await listRegions();
     expect(allRegions.length).toBeGreaterThan(0);

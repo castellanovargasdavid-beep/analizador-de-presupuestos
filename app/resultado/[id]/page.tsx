@@ -7,16 +7,28 @@ import { Badge } from "@/components/ui/Badge";
 import { LinkButton } from "@/components/ui/Button";
 import { RangeBar } from "@/components/result/RangeBar";
 import { Breakdown } from "@/components/result/Breakdown";
+import { Breadcrumbs } from "@/components/content/Breadcrumbs";
 import { LeadRequestCard } from "@/components/leads/LeadRequestCard";
 import { TrackOnMount } from "@/components/analytics/TrackOnMount";
 import { getEstimateForDisplay } from "@/lib/estimation/repository";
 import { formatEUR } from "@/lib/format";
 import { AlertTriangleIcon, InfoIcon } from "@/components/ui/icons";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
-  title: "Tu estimación orientativa",
-  robots: { index: false, follow: true },
-};
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const data = await getEstimateForDisplay(id);
+  const description = data
+    ? `Rango orientativo: ${formatEUR(data.estimate.totalMin)} – ${formatEUR(data.estimate.totalMax)} para esta instalación de aire acondicionado, con desglose por partidas y fuentes.`
+    : undefined;
+
+  return pageMetadata({
+    title: "Tu estimación orientativa",
+    description,
+    path: `/resultado/${id}`,
+    robots: { index: false, follow: true },
+  });
+}
 
 export default async function ResultadoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -34,16 +46,13 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
   return (
     <Container className="max-w-3xl py-12">
       <TrackOnMount eventType="estimate_result_view" estimateId={estimate.id} />
-      <nav aria-label="Breadcrumb" className="text-sm text-neutral-500">
-        <Link href="/" className="hover:text-brand-700">
-          Inicio
-        </Link>{" "}
-        /{" "}
-        <Link href="/aire-acondicionado/instalacion" className="hover:text-brand-700">
-          Instalación de aire acondicionado
-        </Link>{" "}
-        / Resultado
-      </nav>
+      <Breadcrumbs
+        items={[
+          { label: "Inicio", href: "/" },
+          { label: "Instalación de aire acondicionado", href: "/aire-acondicionado/instalacion" },
+          { label: "Resultado" },
+        ]}
+      />
 
       <h1 className="mt-3 text-2xl font-bold text-neutral-950 sm:text-3xl">Tu estimación orientativa</h1>
 

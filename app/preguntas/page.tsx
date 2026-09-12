@@ -1,16 +1,16 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Card } from "@/components/ui/Card";
 import { Breadcrumbs } from "@/components/content/Breadcrumbs";
 import { PREGUNTAS } from "@/lib/content/preguntas";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Preguntas concretas sobre instalar aire acondicionado",
   description: "Respuestas directas a preguntas puntuales y reales sobre instalar aire acondicionado en España.",
-  alternates: { canonical: "/preguntas" },
-};
+  path: "/preguntas",
+});
 
 export default function PreguntasIndexPage() {
   return (
