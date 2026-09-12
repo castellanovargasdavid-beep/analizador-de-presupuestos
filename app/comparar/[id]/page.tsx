@@ -10,10 +10,12 @@ import { Breakdown } from "@/components/result/Breakdown";
 import { ShareActions } from "@/components/result/ShareActions";
 import { Breadcrumbs } from "@/components/content/Breadcrumbs";
 import { LeadRequestCard } from "@/components/leads/LeadRequestCard";
+import { ImpossibleResultNotice } from "@/components/result/ImpossibleResultNotice";
 import { TrackOnMount } from "@/components/analytics/TrackOnMount";
 import { getComparisonForDisplay } from "@/lib/estimation/repository";
 import { detectAlertSignals, materialesSharePctFromRanges, posiblesRazonesFor, preguntasRecomendadasFor } from "@/lib/estimation/compare";
 import { buildComparisonSummaryText } from "@/lib/estimation/summary";
+import { isPlausibleRange } from "@/lib/estimation/sanity";
 import { formatEUR, formatPct } from "@/lib/format";
 import { absoluteUrl } from "@/lib/site";
 import { AlertTriangleIcon } from "@/components/ui/icons";
@@ -73,6 +75,23 @@ export default async function CompararPage({ params }: { params: Promise<{ id: s
   // "compara 3 presupuestos" — este `[0]` es el único punto que cambiaría.
   const { budget, lines, items: budgetItems } = data.budgets[0];
   const { estimate, items, ranges, methodologyVersion } = data.estimate;
+
+  if (!isPlausibleRange(estimate.totalMin, estimate.totalMax)) {
+    return (
+      <Container className="max-w-3xl py-12">
+        <Breadcrumbs
+          items={[
+            { label: "Inicio", href: "/" },
+            { label: "Instalación de aire acondicionado", href: "/aire-acondicionado/instalacion" },
+            { label: "Comparación" },
+          ]}
+        />
+        <h1 className="mt-3 text-2xl font-bold text-neutral-950 sm:text-3xl">¿Es razonable tu presupuesto?</h1>
+        <ImpossibleResultNotice />
+      </Container>
+    );
+  }
+
   const copy = VERDICT_COPY[budget.verdict];
 
   const potenciaKw = (estimate.inputs as { quantities?: { potenciaKw?: number } }).quantities?.potenciaKw;

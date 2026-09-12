@@ -3,9 +3,11 @@ import { Card } from "@/components/ui/Card";
 import { Breadcrumbs } from "@/components/content/Breadcrumbs";
 import { RelatedLinks } from "@/components/content/RelatedLinks";
 import { ConfidenceTag } from "@/components/result/ConfidenceTag";
-import { listDataSources } from "@/lib/estimation/repository";
+import { getLastDataUpdateDate, listDataSources } from "@/lib/estimation/repository";
 import type { Confidence } from "@/lib/estimation/types";
 import { pageMetadata } from "@/lib/metadata";
+import { formatDateEs } from "@/lib/format";
+import { Badge } from "@/components/ui/Badge";
 
 export const metadata = pageMetadata({
   title: "Fuentes",
@@ -24,7 +26,7 @@ const SOURCE_TYPE_LABEL: Record<string, string> = {
 };
 
 export default async function FuentesPage() {
-  const sources = await listDataSources();
+  const [sources, lastUpdate] = await Promise.all([listDataSources(), getLastDataUpdateDate()]);
   const byConfidence = { A: [], B: [], C: [] } as Record<Confidence, typeof sources>;
   for (const s of sources) byConfidence[s.confidence as Confidence].push(s);
 
@@ -40,6 +42,12 @@ export default async function FuentesPage() {
         </a>
         .
       </p>
+
+      {lastUpdate && (
+        <div className="mt-4">
+          <Badge tone="neutral">Datos verificados por última vez: {formatDateEs(lastUpdate)}</Badge>
+        </div>
+      )}
 
       {(["A", "B", "C"] as const).map((level) => (
         <section key={level} className="mt-10">

@@ -53,6 +53,7 @@ export function LeadRequestCard({ estimateId, comparisonId }: LeadRequestCardPro
         contactPhone: form.get("contactPhone"),
         description: form.get("description"),
         consentAccepted: form.get("consentAccepted") === "on",
+        website: form.get("website"),
       },
     );
 
@@ -109,6 +110,20 @@ export function LeadRequestCard({ estimateId, comparisonId }: LeadRequestCardPro
       </p>
 
       <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
+        {/*
+          Honeypot anti-spam: oculto para personas (sr-only + aria-hidden +
+          fuera del tab order), pero presente en el DOM para que un bot que
+          autorrellena formularios sí lo complete. `sr-only` recorta el
+          elemento a 1px en vez de moverlo fuera de pantalla, para no
+          ensanchar la página con scroll horizontal.
+        */}
+        <div aria-hidden="true" className="sr-only">
+          <label>
+            Sitio web (déjalo en blanco)
+            <input name="website" type="text" tabIndex={-1} autoComplete="off" />
+          </label>
+        </div>
+
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
             <span className="text-sm font-medium text-neutral-800">Nombre</span>

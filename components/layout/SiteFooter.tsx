@@ -49,6 +49,9 @@ export function SiteFooter() {
           <Link href="/legal/cookies" className="hover:text-brand-700">
             Cookies
           </Link>
+          <Link href="/legal/terminos" className="hover:text-brand-700">
+            Términos de uso
+          </Link>
           <Link href="/legal/aviso-legal" className="hover:text-brand-700">
             Aviso legal
           </Link>

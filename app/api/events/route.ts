@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { logEvent } from "@/lib/analytics/repository";
+import { checkRateLimit, clientIpFromHeaders } from "@/lib/security/rate-limit";
 
 const eventSchema = z.object({
   eventType: z.enum([
@@ -28,6 +29,15 @@ const eventSchema = z.object({
  * lugar de depender de `request.json()`.
  */
 export async function POST(request: Request) {
+  // Límite generoso: una sesión real dispara varios eventos (page_view,
+  // pasos del asistente...), pero nunca decenas por segundo. Solo corta
+  // un flood (accidental o deliberado) hacia esta tabla.
+  const ip = clientIpFromHeaders(request.headers);
+  const { allowed } = await checkRateLimit(`events:${ip}`, { limit: 60, windowSeconds: 60 });
+  if (!allowed) {
+    return new Response(null, { status: 429 });
+  }
+
   let body: unknown;
   try {
     body = JSON.parse(await request.text());

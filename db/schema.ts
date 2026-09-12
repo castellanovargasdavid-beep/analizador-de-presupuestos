@@ -477,3 +477,17 @@ export const analyticsEvents = pgTable("analytics_events", {
   metadata: jsonb("metadata"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// ---------------------------------------------------------------------------
+// Rate limiting — sin Redis: un contador de ventana fija por clave
+// ("acción:ip") en la propia Postgres. Suficiente para el tráfico de un
+// formulario público; si el volumen lo exigiera algún día, se sustituiría
+// por un almacén en memoria compartido sin cambiar quién lo llama
+// (lib/security/rate-limit.ts es el único punto de esa decisión).
+// ---------------------------------------------------------------------------
+
+export const rateLimitBuckets = pgTable("rate_limit_buckets", {
+  key: text("key").primaryKey(),
+  windowStart: timestamp("window_start", { withTimezone: true }).notNull(),
+  count: integer("count").notNull(),
+});

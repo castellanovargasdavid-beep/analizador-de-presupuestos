@@ -31,6 +31,13 @@ export const leadFormSchema = z.object({
   consentAccepted: z.boolean().refine((v) => v === true, {
     message: "Tienes que aceptar el consentimiento para poder enviar la solicitud",
   }),
+  /**
+   * Honeypot: campo oculto por CSS que ningún usuario real rellena. Un bot
+   * que auto-rellena formularios normalmente sí lo hace. No se valida como
+   * error de formulario — se comprueba aparte para poder rechazar en
+   * silencio sin dar pistas a quien lo dispara (ver lib/leads/actions.ts).
+   */
+  website: z.string().optional(),
 });
 
 export type LeadFormValues = z.infer<typeof leadFormSchema>;

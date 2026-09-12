@@ -9,8 +9,10 @@ import { RangeBar } from "@/components/result/RangeBar";
 import { Breakdown } from "@/components/result/Breakdown";
 import { Breadcrumbs } from "@/components/content/Breadcrumbs";
 import { LeadRequestCard } from "@/components/leads/LeadRequestCard";
+import { ImpossibleResultNotice } from "@/components/result/ImpossibleResultNotice";
 import { TrackOnMount } from "@/components/analytics/TrackOnMount";
 import { getEstimateForDisplay } from "@/lib/estimation/repository";
+import { isPlausibleRange } from "@/lib/estimation/sanity";
 import { formatEUR } from "@/lib/format";
 import { AlertTriangleIcon, InfoIcon } from "@/components/ui/icons";
 import { pageMetadata } from "@/lib/metadata";
@@ -42,6 +44,7 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
   const ivaRange = ranges.find((r) => r.groupKey === "iva");
   const rite = estimate.inputs as { quantities?: { potenciaKw?: number } };
   const superaRite = typeof rite.quantities?.potenciaKw === "number" && rite.quantities.potenciaKw > 5;
+  const isResultPlausible = isPlausibleRange(estimate.totalMin, estimate.totalMax);
 
   return (
     <Container className="max-w-3xl py-12">
@@ -56,6 +59,10 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
 
       <h1 className="mt-3 text-2xl font-bold text-neutral-950 sm:text-3xl">Tu estimación orientativa</h1>
 
+      {!isResultPlausible ? (
+        <ImpossibleResultNotice />
+      ) : (
+        <>
       <Card className="mt-6">
         <p className="text-sm font-semibold text-neutral-500">Estimación orientativa (IVA incluido)</p>
         <p className="mt-1 text-4xl font-bold tabular-nums text-brand-800">
@@ -121,6 +128,8 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
       </Card>
 
       <LeadRequestCard estimateId={estimate.id} />
+        </>
+      )}
 
       <p className="mt-8 text-center text-sm text-neutral-500">
         <Badge tone="neutral">Metodología {methodologyVersion}</Badge> — esto no es una tasación profesional.{" "}

@@ -23,7 +23,12 @@ export default function MetodologiaPage() {
       <h1 className="mt-3 text-3xl font-bold text-neutral-950">¿Cómo calculamos estos precios?</h1>
       <p className="mt-4 text-lg text-neutral-700">
         No somos tasadores ni peritos. Esto es una estimación orientativa construida con datos que existen hoy —
-        y donde no hay un dato fiable, lo decimos, en vez de inventarlo.
+        y donde no hay un dato fiable, lo decimos, en vez de inventarlo. La fecha en la que verificamos cada dato
+        está en{" "}
+        <a href="/fuentes" className="font-semibold text-brand-700 hover:underline">
+          fuentes
+        </a>
+        .
       </p>
 
       <Card className="mt-8">

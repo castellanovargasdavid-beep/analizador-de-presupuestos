@@ -5,7 +5,7 @@
  * datos, así que siguen siendo testeables con fixtures puros.
  */
 import { cache } from "react";
-import { and, count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db/client";
 import {
   budgetComparisons,
@@ -126,6 +126,17 @@ export async function listRegions() {
 /** Para /fuentes — la transparencia de docs/01 convertida en página real, no solo en documento interno. */
 export async function listDataSources() {
   return db.select().from(dataSources).orderBy(dataSources.confidence, dataSources.name);
+}
+
+/**
+ * Fecha (ISO `YYYY-MM-DD`, comparable como texto) en la que se verificó
+ * por última vez alguna fuente de datos — la señal de confianza más simple
+ * y honesta: no "actualizado hace 2 minutos" inventado, sino la fecha real
+ * más reciente de `data_sources.retrieved_on`. `null` si no hay fuentes.
+ */
+export async function getLastDataUpdateDate(): Promise<string | null> {
+  const [row] = await db.select({ max: sql<string | null>`max(${dataSources.retrievedOn})` }).from(dataSources);
+  return row?.max ?? null;
 }
 
 /** Alimenta lib/content/territory-gate.ts: cuántas estimaciones propias hay para una región. */

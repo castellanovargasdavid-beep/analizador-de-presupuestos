@@ -9,8 +9,9 @@ import { CheckboxRow, FieldLabel, NumberField, RadioCardGroup, TextField } from 
 import { estimatePotenciaKwFromSuperficie } from "@/lib/estimation/sizing";
 import { calculateEstimateAction, compareBudgetAction } from "@/lib/estimation/actions";
 import type { CalculatorFormValues, DeclaredBudgetLineValues } from "@/lib/estimation/validation";
-import { ArrowRightIcon, AlertTriangleIcon } from "../ui/icons";
+import { ArrowRightIcon, AlertTriangleIcon, InfoIcon } from "../ui/icons";
 import { trackEvent } from "@/lib/analytics/track";
+import type { ErrorKind } from "@/lib/errors/safe-message";
 
 type Mode = "calculadora" | "analizador";
 
@@ -95,6 +96,7 @@ export function Wizard({
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorKind, setErrorKind] = useState<ErrorKind | undefined>(undefined);
   const [state, setState] = useState<State>(() =>
     mode === "analizador" ? { ...INITIAL, quiereComparar: true } : INITIAL,
   );
@@ -145,6 +147,7 @@ export function Wizard({
   async function finish() {
     setSubmitting(true);
     setError(null);
+    setErrorKind(undefined);
 
     const formValues: CalculatorFormValues = {
       systemType: state.systemType,
@@ -171,6 +174,7 @@ export function Wizard({
       });
       if (!result.ok || !result.data) {
         setError(result.error ?? "No se ha podido comparar el presupuesto.");
+        setErrorKind(result.errorKind);
         setSubmitting(false);
         return;
       }
@@ -182,6 +186,7 @@ export function Wizard({
     const result = await calculateEstimateAction(formValues);
     if (!result.ok || !result.data) {
       setError(result.error ?? "No se ha podido calcular la estimación.");
+      setErrorKind(result.errorKind);
       setSubmitting(false);
       return;
     }
@@ -512,12 +517,7 @@ export function Wizard({
             Hemos recogido las características de tu instalación
             {state.quiereComparar ? " y el presupuesto que has recibido" : ""}. Pulsa el botón para ver tu resultado.
           </p>
-          {error && (
-            <div className="mt-4 flex gap-2 rounded-lg bg-critical-bg p-3 text-sm text-critical-text">
-              <AlertTriangleIcon className="mt-0.5 size-4 shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
+          {error && <ErrorNotice kind={errorKind} message={error} />}
         </div>
       )}
 
@@ -541,6 +541,44 @@ export function Wizard({
         )}
       </div>
     </Card>
+  );
+}
+
+const ERROR_NOTICE_COPY: Record<Exclude<ErrorKind, "validation"> | "default", { title: string; tone: "warning" | "info" }> = {
+  missing_data: {
+    title: "No tenemos datos suficientes para tu caso exacto",
+    tone: "info",
+  },
+  unavailable: {
+    title: "Servicio no disponible ahora mismo",
+    tone: "warning",
+  },
+  unknown: {
+    title: "No hemos podido completar esto",
+    tone: "warning",
+  },
+  default: {
+    title: "Revisa el formulario",
+    tone: "warning",
+  },
+};
+
+/** Mismo componente para los tres estados de error del asistente — solo cambia el tono y el título. */
+function ErrorNotice({ kind, message }: { kind: ErrorKind | undefined; message: string }) {
+  const copy = kind && kind !== "validation" ? ERROR_NOTICE_COPY[kind] : ERROR_NOTICE_COPY.default;
+  const isInfo = copy.tone === "info";
+  const Icon = isInfo ? InfoIcon : AlertTriangleIcon;
+
+  return (
+    <div
+      className={`mt-4 flex gap-2 rounded-lg p-3 text-sm ${isInfo ? "bg-info-bg text-info-text" : "bg-warning-bg text-warning-text"}`}
+    >
+      <Icon className="mt-0.5 size-4 shrink-0" />
+      <div>
+        <p className="font-semibold">{copy.title}</p>
+        <p className="mt-0.5">{message}</p>
+      </div>
+    </div>
   );
 }
 
