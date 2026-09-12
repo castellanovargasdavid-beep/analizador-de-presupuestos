@@ -21,6 +21,22 @@ import { absoluteUrl } from "@/lib/site";
 import { AlertTriangleIcon } from "@/components/ui/icons";
 import { pageMetadata } from "@/lib/metadata";
 
+/**
+ * Enlaza cada pregunta recomendada (texto fijo generado por
+ * `preguntasRecomendadasFor`, ver lib/estimation/compare.ts) con su
+ * respuesta completa en /preguntas cuando existe una — no todas las
+ * preguntas recomendadas tienen hoy una página propia, así que las que no
+ * están en este mapa se siguen mostrando como texto plano.
+ */
+const PREGUNTA_HREF: Record<string, string> = {
+  "¿El precio incluye la retirada y reciclaje del equipo antiguo?":
+    "/preguntas/cuanto-cuesta-retirar-aire-acondicionado-antiguo",
+  "Esta instalación supera 5 kW: ¿el presupuesto incluye la memoria técnica y el registro ante la Comunidad Autónoma?":
+    "/preguntas/necesito-certificado-rite-aire-acondicionado",
+  "El equipo representa más del 40% del presupuesto: si compras el equipo por separado y solo contratas la instalación, el IVA de la mano de obra podría reducirse al 10%. Pregúntalo.":
+    "/preguntas/iva-10-o-21-instalacion-aire-acondicionado",
+};
+
 const VERDICT_DESCRIPTION: Record<string, string> = {
   dentro_de_rango: "Este presupuesto está dentro del rango orientativo calculado para esta instalación de aire acondicionado.",
   por_encima: "Este presupuesto está por encima del rango orientativo calculado, con posibles razones y preguntas recomendadas.",
@@ -261,12 +277,21 @@ export default async function CompararPage({ params }: { params: Promise<{ id: s
       <Card className="mt-6">
         <h2 className="font-bold text-neutral-950">Preguntas que te pueden ayudar</h2>
         <ul className="mt-3 space-y-2">
-          {preguntasRecomendadas.map((p) => (
-            <li key={p} className="flex gap-2 text-neutral-700">
-              <span className="text-brand-600">→</span>
-              {p}
-            </li>
-          ))}
+          {preguntasRecomendadas.map((p) => {
+            const href = PREGUNTA_HREF[p];
+            return (
+              <li key={p} className="flex gap-2 text-neutral-700">
+                <span className="text-brand-600">→</span>
+                {href ? (
+                  <Link href={href} className="underline decoration-dotted underline-offset-2 hover:text-brand-700">
+                    {p}
+                  </Link>
+                ) : (
+                  p
+                )}
+              </li>
+            );
+          })}
         </ul>
       </Card>
 

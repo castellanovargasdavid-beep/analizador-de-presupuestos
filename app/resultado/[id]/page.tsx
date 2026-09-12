@@ -84,7 +84,11 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
           <InfoIcon className="mt-0.5 size-5 shrink-0 text-info-text" />
           <p className="text-sm text-info-text">
             Tu instalación supera los 5 kW: el RITE exige memoria técnica y registro del certificado ante tu
-            Comunidad Autónoma. Pregunta a tu instalador si este trámite está incluido en el presupuesto.
+            Comunidad Autónoma. Pregunta a tu instalador si este trámite está incluido en el presupuesto (
+            <Link href="/preguntas/necesito-certificado-rite-aire-acondicionado" className="underline hover:no-underline">
+              más detalle aquí
+            </Link>
+            ).
           </p>
         </div>
       )}

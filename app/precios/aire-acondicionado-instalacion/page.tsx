@@ -170,6 +170,15 @@ export default async function PreciosInstalacionPage() {
             { href: "/aire-acondicionado/instalacion", label: "Calculadora completa", description: "Ajustada a tu caso exacto." },
             { href: "/aire-acondicionado/instalacion/analizar-presupuesto", label: "Analizar un presupuesto ya recibido" },
             { href: "/comparativas/split-vs-conductos", label: "Split vs. conductos: qué sistema conviene" },
+            {
+              href: "/preguntas/iva-10-o-21-instalacion-aire-acondicionado",
+              label: "¿Por qué el IVA es del 21% y no del 10%?",
+              description: "Los tres requisitos del tipo reducido.",
+            },
+            {
+              href: "/preguntas/cuanto-cuesta-retirar-aire-acondicionado-antiguo",
+              label: "¿Cuánto cuesta retirar un equipo antiguo?",
+            },
           ]}
         />
 

@@ -172,6 +172,11 @@ export default async function InstalacionPage() {
               href: "/guias/como-comparar-presupuestos-de-instalacion",
               label: "Cómo comparar presupuestos de instalación",
             },
+            {
+              href: "/preguntas/necesito-certificado-rite-aire-acondicionado",
+              label: "¿Necesito el certificado RITE?",
+              description: "Obligatorio a partir de cierta potencia.",
+            },
           ]}
         />
 

@@ -25,6 +25,9 @@ export function SiteFooter() {
           <Link href="/guias" className="hover:text-brand-700">
             Guías
           </Link>
+          <Link href="/preguntas" className="hover:text-brand-700">
+            Preguntas
+          </Link>
         </div>
         <div className="flex flex-col gap-2">
           <span className="font-semibold text-neutral-950">Confianza</span>
