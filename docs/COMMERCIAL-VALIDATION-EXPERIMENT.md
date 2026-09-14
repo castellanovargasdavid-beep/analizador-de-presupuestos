@@ -32,7 +32,7 @@ cobrado y recompra.
 | Exclusividad | El lead se marca "vendido" en cuanto se cobra y no se vuelve a ofrecer |
 | Qué ve el profesional antes de pagar | Ficha resumen (ver §6) — nunca el contacto completo |
 | Ventana de ejecución activa | 14 días (ver §9) |
-| Ciudad(es)/zona(s) objetivo | **PENDIENTE DE DECIDIR** — ver §11, bloqueante para arrancar §3 y §9 |
+| Ciudad(es)/zona(s) objetivo | **Madrid** |
 | Fecha de inicio real | **PENDIENTE DE DECIDIR** |
 
 ---
@@ -82,16 +82,48 @@ verdad? (la ficha o la web dice "instalación", no solo "reparación") · ¿zona
 real? (dirección de Google Business) · buscar su teléfono/nombre en esta
 misma tabla antes de añadirlo, para no duplicar contacto.
 
-### Tabla de candidatos (20 filas objetivo)
+### Primer lote de candidatos (encontrado por búsqueda web — ver nota de limitación abajo)
+
+**Nota de limitación, honesta**: en este entorno el acceso directo a Google
+Maps, Instagram, Wallapop y a las páginas de las propias empresas está
+bloqueado por la política de red — solo he podido usar resultados de
+búsqueda de texto, no navegar ni extraer las páginas. Eso significa: (1) los
+teléfonos de abajo son los que aparecían literalmente en el texto de un
+resultado de búsqueda, nunca inventados — donde no aparecía ninguno, la
+celda queda vacía; (2) no he podido verificar en ninguna plataforma
+propia (Habitissimo/Cronoshare) si estas empresas concretas ya compran
+leads ahí, así que esa columna queda "por verificar" para todas; (3) las
+empresas que mejor posicionan en Google suelen ser las más grandes o con
+más presupuesto de marketing — probablemente sesgadas hacia el extremo
+"empresa establecida" del perfil, no el autónomo/microempresa ideal de §2.
+Los 3 perfiles encontrados solo por Instagram (sin web corporativa propia)
+son los que mejor encajan con el perfil objetivo y deberían priorizarse.
+**Faltan por completar a mano** (Google Maps para teléfono/reseñas/zona
+exacta, Instagram/Facebook para actividad reciente, y las 11 filas
+restantes hasta llegar a 20) — el resto de la lista, más la verificación
+de cada fila de abajo, es trabajo que solo se puede hacer navegando de
+verdad, no por búsqueda de texto.
 
 | Empresa | Profesional | Ciudad/zona | Teléfono | Web | Google Business | Instagram/Facebook | Plataforma donde aparece | ¿Compra leads? | ¿Instala A/C? | Prioridad | Fecha contacto | Canal | Respondió | Interés | Objeción | Precio ofrecido | ¿Probaría? | Resultado |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| | | | | | | | | | | | | | | | | | | |
-| | | | | | | | | | | | | | | | | | | |
-| | | | | | | | | | | | | | | | | | | |
+| Instalaciones Madrid Clima (IMC) | — | Madrid (por verificar distrito) | por verificar | por verificar | por verificar | [@instalacionesmadridclima](https://www.instagram.com/instalacionesmadridclima/) | Instagram | por verificar | Sí (aire acondicionado y calderas de gas) | **A** | | | | | | | | |
+| Climatizaciones Econfort | — | Madrid (por verificar distrito) | por verificar | por verificar | por verificar | [@econfort.madrid](https://www.instagram.com/econfort.madrid/) | Instagram | por verificar | Sí (climatización) | **A** | | | | | | | | |
+| Euroclima Madrid | — | Madrid (por verificar distrito) | por verificar | por verificar | por verificar | [@euroclimamadrid](https://www.instagram.com/euroclimamadrid/) | Instagram | por verificar | Sí (climatización) | **A** | | | | | | | | |
+| ASM Climatización | — | Madrid (por verificar distrito) | 912 320 190 | [asmclimatizacion.es](https://asmclimatizacion.es/aire-acondicionado/) | por verificar | por verificar | Web propia | por verificar | Sí (instalación, anuncia -30%) | **B** | | | | | | | | |
+| Climagar Climatización SL | — | Móstoles (zona sur Madrid) | 910 112 539 / WhatsApp 647 960 139 | [climagar.com](https://www.climagar.com/) | por verificar | por verificar | Web propia (empresa registrada, SL) | por verificar | Sí (instalación y mantenimiento) | **B** | | | | | | | | |
+| Ekoclima | — | Comunidad de Madrid (amplia, por acotar distrito) | 647 45 25 84 | [ekoclima.com](https://ekoclima.com/) | por verificar | no encontrada | Web propia | por verificar | Sí, pero se presenta como "líder del sector" — verificar si es autónomo/pequeña o ya mediana | **B** (verificar tamaño) | | | | | | | | |
+| Grupo Lasser | — | Madrid (por verificar distrito) | por verificar | [grupolasser.com](https://grupolasser.com/presupuesto-aire-acondicionado/) | por verificar | por verificar | Web propia | por verificar | Sí | **B** | | | | | | | | |
+| Hermanos Pérez (hnosperez) | — | Madrid (por verificar distrito) | por verificar | [hnosperez.com](https://www.hnosperez.com/climatizacion/aire-acondicionado) | por verificar | por verificar | Web propia | por verificar | Sí | **B** | | | | | | | | |
+| Clima Total | — | Madrid (por verificar distrito) | por verificar | [climatotal.es](https://climatotal.es/producto/instalacion-de-aire-acondicionado/) | por verificar | por verificar | Web propia | por verificar | Sí (solo instalación de equipos comprados en su empresa — verificar si aceptaría un lead externo) | **B** | | | | | | | | |
+| Gisteco | — | Madrid (por verificar distrito) | por verificar | [gisteco.com](https://gisteco.com/aire-acondicionado-madrid/) | por verificar | por verificar | Web propia | por verificar | Sí | **B** | | | | | | | | |
+| *(11 filas más hasta 20 — completar en Google Maps/Wallapop/Milanuncios/Instagram, priorizando perfiles tipo IMC/Econfort/Euroclima sin gran web corporativa)* | | | | | | | | | | | | | | | | | | |
 
-*(Añadir filas hasta llegar a 20. No se rellena ninguna fila con datos de
-ejemplo — se completa solo con negocios reales verificados.)*
+*(No se rellena ninguna fila con datos de ejemplo — todo lo de arriba es un
+negocio real encontrado por búsqueda, con la columna correspondiente en
+blanco/"por verificar" donde no hay evidencia directa. Verificar cada "por
+verificar" antes de contactar, y descartar cualquiera que en Google Maps
+resulte inactivo, solo de mantenimiento, o claramente una empresa grande
+con varias delegaciones.)*
 
 ---
 
@@ -242,9 +274,11 @@ sin contexto, publicidad de pago genérica, comunidades de emprendimiento.
 
 ## 11. Decisiones pendientes (bloquean el arranque real)
 
-- [ ] Ciudad(es)/zona(s) objetivo.
+- [x] Ciudad(es)/zona(s) objetivo → **Madrid**.
 - [ ] Fecha de inicio real de los 14 días.
-- [ ] ¿Hay algún contacto personal que vaya a instalar A/C pronto? (clave para §10.1)
+- [x] ¿Hay algún contacto personal que vaya a instalar A/C pronto? → **No, ninguno ahora mismo** — la estrategia §10.1 (contacto personal) queda descartada de entrada; empezar directamente por §10.2/10.3 (grupos locales y foros) en paralelo a contactar profesionales.
+- [ ] Completar las 11 filas restantes de la tabla de §3 y verificar cada "por verificar" en Google Maps/Instagram/Wallapop (no se puede hacer desde este entorno — acceso a esas webs bloqueado, ver nota en §3).
+- [ ] Fijar el día 1 real y empezar a contactar a los 9 candidatos de la tabla de §3 (empezando por los 3 de Prioridad A).
 
 ## 12. Definición de éxito
 
