@@ -33,7 +33,7 @@ cobrado y recompra.
 | Qué ve el profesional antes de pagar | Ficha resumen (ver §6) — nunca el contacto completo |
 | Ventana de ejecución activa | 14 días (ver §9) |
 | Ciudad(es)/zona(s) objetivo | **Madrid** |
-| Fecha de inicio real | **PENDIENTE DE DECIDIR** |
+| Fecha de inicio real | **15/09/2026** (Día 1 del plan de 14 días de §9) |
 
 ---
 
@@ -82,48 +82,70 @@ verdad? (la ficha o la web dice "instalación", no solo "reparación") · ¿zona
 real? (dirección de Google Business) · buscar su teléfono/nombre en esta
 misma tabla antes de añadirlo, para no duplicar contacto.
 
-### Primer lote de candidatos (encontrado por búsqueda web — ver nota de limitación abajo)
+### Lista de 20 candidatos (completa — corrige el recuento inconsistente de la versión anterior de este documento, que sumaba 21 filas entre las 10 registradas y las "11 más" pendientes)
 
-**Nota de limitación, honesta**: en este entorno el acceso directo a Google
-Maps, Instagram, Wallapop y a las páginas de las propias empresas está
-bloqueado por la política de red — solo he podido usar resultados de
-búsqueda de texto, no navegar ni extraer las páginas. Eso significa: (1) los
-teléfonos de abajo son los que aparecían literalmente en el texto de un
-resultado de búsqueda, nunca inventados — donde no aparecía ninguno, la
-celda queda vacía; (2) no he podido verificar en ninguna plataforma
-propia (Habitissimo/Cronoshare) si estas empresas concretas ya compran
-leads ahí, así que esa columna queda "por verificar" para todas; (3) las
-empresas que mejor posicionan en Google suelen ser las más grandes o con
-más presupuesto de marketing — probablemente sesgadas hacia el extremo
-"empresa establecida" del perfil, no el autónomo/microempresa ideal de §2.
-Los 3 perfiles encontrados solo por Instagram (sin web corporativa propia)
-son los que mejor encajan con el perfil objetivo y deberían priorizarse.
-**Faltan por completar a mano** (Google Maps para teléfono/reseñas/zona
-exacta, Instagram/Facebook para actividad reciente, y las 11 filas
-restantes hasta llegar a 20) — el resto de la lista, más la verificación
-de cada fila de abajo, es trabajo que solo se puede hacer navegando de
-verdad, no por búsqueda de texto.
+**Nota de limitación, honesta, vigente para toda la tabla**: en este entorno
+el acceso directo a Google Maps, Instagram, Wallapop y a la mayoría de webs
+de empresa está bloqueado por la política de red de este entorno — solo he
+podido usar resultados de búsqueda de texto, no navegar ni extraer las
+páginas directamente. Consecuencias concretas:
 
-| Empresa | Profesional | Ciudad/zona | Teléfono | Web | Google Business | Instagram/Facebook | Plataforma donde aparece | ¿Compra leads? | ¿Instala A/C? | Prioridad | Fecha contacto | Canal | Respondió | Interés | Objeción | Precio ofrecido | ¿Probaría? | Resultado |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Instalaciones Madrid Clima (IMC) | — | Madrid (por verificar distrito) | por verificar | por verificar | por verificar | [@instalacionesmadridclima](https://www.instagram.com/instalacionesmadridclima/) | Instagram | por verificar | Sí (aire acondicionado y calderas de gas) | **A** | | | | | | | | |
-| Climatizaciones Econfort | — | Madrid (por verificar distrito) | por verificar | por verificar | por verificar | [@econfort.madrid](https://www.instagram.com/econfort.madrid/) | Instagram | por verificar | Sí (climatización) | **A** | | | | | | | | |
-| Euroclima Madrid | — | Madrid (por verificar distrito) | por verificar | por verificar | por verificar | [@euroclimamadrid](https://www.instagram.com/euroclimamadrid/) | Instagram | por verificar | Sí (climatización) | **A** | | | | | | | | |
-| ASM Climatización | — | Madrid (por verificar distrito) | 912 320 190 | [asmclimatizacion.es](https://asmclimatizacion.es/aire-acondicionado/) | por verificar | por verificar | Web propia | por verificar | Sí (instalación, anuncia -30%) | **B** | | | | | | | | |
-| Climagar Climatización SL | — | Móstoles (zona sur Madrid) | 910 112 539 / WhatsApp 647 960 139 | [climagar.com](https://www.climagar.com/) | por verificar | por verificar | Web propia (empresa registrada, SL) | por verificar | Sí (instalación y mantenimiento) | **B** | | | | | | | | |
-| Ekoclima | — | Comunidad de Madrid (amplia, por acotar distrito) | 647 45 25 84 | [ekoclima.com](https://ekoclima.com/) | por verificar | no encontrada | Web propia | por verificar | Sí, pero se presenta como "líder del sector" — verificar si es autónomo/pequeña o ya mediana | **B** (verificar tamaño) | | | | | | | | |
-| Grupo Lasser | — | Madrid (por verificar distrito) | por verificar | [grupolasser.com](https://grupolasser.com/presupuesto-aire-acondicionado/) | por verificar | por verificar | Web propia | por verificar | Sí | **B** | | | | | | | | |
-| Hermanos Pérez (hnosperez) | — | Madrid (por verificar distrito) | por verificar | [hnosperez.com](https://www.hnosperez.com/climatizacion/aire-acondicionado) | por verificar | por verificar | Web propia | por verificar | Sí | **B** | | | | | | | | |
-| Clima Total | — | Madrid (por verificar distrito) | por verificar | [climatotal.es](https://climatotal.es/producto/instalacion-de-aire-acondicionado/) | por verificar | por verificar | Web propia | por verificar | Sí (solo instalación de equipos comprados en su empresa — verificar si aceptaría un lead externo) | **B** | | | | | | | | |
-| Gisteco | — | Madrid (por verificar distrito) | por verificar | [gisteco.com](https://gisteco.com/aire-acondicionado-madrid/) | por verificar | por verificar | Web propia | por verificar | Sí | **B** | | | | | | | | |
-| *(11 filas más hasta 20 — completar en Google Maps/Wallapop/Milanuncios/Instagram, priorizando perfiles tipo IMC/Econfort/Euroclima sin gran web corporativa)* | | | | | | | | | | | | | | | | | | |
+1. Todo teléfono/email/dirección de abajo es literal, tal como apareció en
+   un resultado de búsqueda — nunca inventado. Donde no apareció ninguno,
+   la celda dice "no encontrado por búsqueda" (no "no tiene").
+2. Ninguna fila tiene confirmado si compra leads en Habitissimo/Cronoshare
+   — no he podido entrar a esos directorios para buscar cada nombre
+   concreto. Columna "por verificar" en todas.
+3. Ninguna fila tiene confirmado el tamaño real de plantilla (1-5
+   trabajadores vs. más) — se infiere de forma orientativa por indicios
+   textuales (SL registrada + "líder del sector" + cobertura multi-zona →
+   probablemente mediana; nombre de persona física + solo redes sociales →
+   probablemente autónomo), pero es una inferencia, no un hecho verificado.
+4. Dos de los nombres que aportaste (**AIRE TECNICOS**, **Equipo Alma
+   Climatización**) no han dado ningún resultado que los identifique de
+   forma inequívoca en la búsqueda — puede ser normal si son negocios muy
+   pequeños sin presencia web indexada (lo cual, de hecho, encajaría bien
+   con el perfil buscado), pero significa que no puedo aportar ningún dato
+   de contacto real para ellos: hace falta el enlace/perfil exacto que tú
+   ya tienes localizado.
 
-*(No se rellena ninguna fila con datos de ejemplo — todo lo de arriba es un
-negocio real encontrado por búsqueda, con la columna correspondiente en
-blanco/"por verificar" donde no hay evidencia directa. Verificar cada "por
-verificar" antes de contactar, y descartar cualquiera que en Google Maps
-resulte inactivo, solo de mantenimiento, o claramente una empresa grande
-con varias delegaciones.)*
+| # | Empresa | Persona (si consta) | Zona | Teléfono | Web | Instagram/Facebook/TikTok | ¿Compra leads? | ¿Instala A/C residencial? | Tamaño (inferido, sin confirmar) | Prioridad |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | Instalaciones Madrid Clima (IMC) | — | Madrid (distrito por verificar) | no encontrado por búsqueda | no encontrada | [@instalacionesmadridclima](https://www.instagram.com/instalacionesmadridclima/) | por verificar | Sí (A/C y calderas de gas) | Probable autónomo/pequeño (solo Instagram, sin web propia) | **A** |
+| 2 | Climatizaciones Econfort | — | Madrid (distrito por verificar) | no encontrado por búsqueda | no encontrada | [@econfort.madrid](https://www.instagram.com/econfort.madrid/) | por verificar | Sí | Probable autónomo/pequeño | **A** |
+| 3 | Euroclima Madrid | — | Madrid (distrito por verificar) | no encontrado por búsqueda | no encontrada | [@euroclimamadrid](https://www.instagram.com/euroclimamadrid/) | por verificar | Sí | Probable autónomo/pequeño | **A** |
+| 4 | Aires del Río Climatización | Jhonattan Paul del Río (nombre citado en el registro del negocio) | Arganda del Rey (Comunidad de Madrid) | 689 940 303 (visible en su Instagram) | [airesdelrio.com](https://www.airesdelrio.com/) | [@aires_del_rio](https://www.instagram.com/aires_del_rio/) | por verificar | Sí (instalación, mantenimiento, reparación, VRV) | Probable autónomo (nombre de persona física asociado) | **A** |
+| 5 | Noan Instalaciones | — | Carabanchel, Madrid (28025) | 638 73 05 17 | [noaninstalaciones.com](https://noaninstalaciones.com/) | no encontrada | por verificar | Sí (instalación y venta) | Probable pequeño (4,9★ en Google, horario propio de negocio familiar, incluye sábados) | **A** |
+| 6 | ASM Climatización | — | Madrid (distrito por verificar) | 912 320 190 | [asmclimatizacion.es](https://asmclimatizacion.es/aire-acondicionado/) | no encontrada | por verificar | Sí (anuncia oferta -30%) | Sin confirmar | **B** |
+| 7 | Climagar Climatización SL | — | Móstoles (zona sur Madrid), Calle Venus 2 Nave 19 | 910 112 539 / WhatsApp 647 960 139 | [climagar.com](https://www.climagar.com/) | no encontrada | por verificar | Sí (instalación y mantenimiento) | SL registrada — sin confirmar tamaño | **B** |
+| 8 | Ekoclima | — | Comunidad de Madrid (amplia, distrito por acotar) | 647 45 25 84 | [ekoclima.com](https://ekoclima.com/) | no encontrada | por verificar | Sí | Se presenta como "líder del sector", +20 años — probablemente ya mediana, verificar antes de priorizar | **B** |
+| 9 | Grupo Lasser | — | Madrid (distrito por verificar) | no encontrado por búsqueda | [grupolasser.com](https://grupolasser.com/presupuesto-aire-acondicionado/) | no encontrada | por verificar | Sí | Sin confirmar | **B** |
+| 10 | Hermanos Pérez (hnosperez) | — | Madrid (distrito por verificar) | no encontrado por búsqueda | [hnosperez.com](https://www.hnosperez.com/climatizacion/aire-acondicionado) | no encontrada | por verificar | Sí | Sin confirmar | **B** |
+| 11 | Clima Total | — | Madrid (distrito por verificar) | no encontrado por búsqueda | [climatotal.es](https://climatotal.es/producto/instalacion-de-aire-acondicionado/) | no encontrada | por verificar | Solo instala equipos comprados en su propia tienda — verificar si aceptaría un lead externo antes de contactar | Sin confirmar | **B** |
+| 12 | Gisteco | — | Madrid (distrito por verificar) | no encontrado por búsqueda | [gisteco.com](https://gisteco.com/aire-acondicionado-madrid/) | no encontrada | por verificar | Sí | Sin confirmar | **B** |
+| 13 | Cicloclima S.L. Climatización | Jesús Novoa y Julián Santos (fundadores, 2003) | Madrid — Calle Marquesa de Argüeso 9 (28019) | 91 460 10 15 / 672 095 843 / 687 417 656 / 686 359 157 | [cicloclima.com](https://cicloclima.com/) | no encontrada | por verificar | Sí (climatización, ventilación, zonificación Airzone) | SAT oficial de Airzone desde 2003 — probablemente ya mediana, verificar | **B** |
+| 14 | Arte y Clima Aire Acondicionado SL | — | Madrid — Latina/Lucero, Saturnino Morán 8 bajo | 914 636 958 | [arteyclima.es](https://arteyclima.es/) | no encontrada | por verificar | Sí | SL con "extensa experiencia" — sin confirmar tamaño | **B** |
+| 15 | ABK Climatización | — | Getafe, Madrid — Calle Alvarado 7 (cobertura: Getafe, Leganés, Móstoles, Fuenlabrada, Pozuelo, Majadahonda, Boadilla, Las Rozas, Villaviciosa de Odón) | no encontrado por búsqueda (listado con "ver teléfono" oculto) | [abkclimatizacion.com](https://abkclimatizacion.com/) | [TikTok @abk.climatizacion](https://www.tiktok.com/@abk.climatizacion) | por verificar | Sí | Cobertura multi-municipio amplia — probablemente ya mediana | **B** |
+| 16 | INCLIMA | — | Ciudad Lineal, Madrid — Calle Luis Ruiz 90 (28017) | no encontrado por búsqueda | [inclima.es](https://inclima.es/) | no encontrada | por verificar | Sí (instalación, reparación, mantenimiento; registrada como instaladora en la CM, nº 206814) | Sin confirmar | **B** |
+| 17 | NOVAMYR Instalación Aire Acondicionado | — | Centro, Madrid — C. de la Palma 8 (28004) | no encontrado por búsqueda | [serviciosdemantenimiento.es (ficha)](https://serviciosdemantenimiento.es/directory/empresas/novamyr-instalacion-aire-acondicionado-reparacion-y-mantenimiento/) — sin web propia confirmada | no encontrada | por verificar | Sí | Sin confirmar | **B** |
+| 18 | Clima Nova Solutions | — | Madrid (distrito por verificar) | no encontrado por búsqueda | [climanovasolutions.es](https://climanovasolutions.es/) | no encontrada | por verificar | Sí (instalación, reparación, mantenimiento; +15 años del sector) | "Empresa" con +15 años — sin confirmar tamaño | **B** |
+| 19 | AIRE TECNICOS | — | Madrid (sin confirmar) | **no identificado por la búsqueda** — necesito el enlace/perfil exacto que tú ya localizaste | — | — | por verificar | por verificar | por verificar | **Pendiente de tu confirmación** |
+| 20 | Equipo Alma Climatización | — | Madrid (sin confirmar) | **no identificado por la búsqueda** — necesito el enlace/perfil exacto que tú ya localizaste | — | — | por verificar | por verificar | por verificar | **Pendiente de tu confirmación** |
+
+Resumen de prioridad: **5 en Prioridad A** (filas 1-5: los únicos con señal
+razonable de ser autónomo/microempresa), **13 en Prioridad B** (empresas más
+establecidas, tamaño sin confirmar — hay que verificarlas antes de asumir
+que encajan), **2 pendientes de que confirmes tú la fuente exacta** (filas
+19-20).
+
+### Registro de contacto (rellenar a mano según se vaya contactando cada fila)
+
+| # Empresa | Fecha contacto | Canal | Respondió | Interés | Objeción | Precio ofrecido | ¿Probaría? | Resultado |
+|---|---|---|---|---|---|---|---|---|
+| | | | | | | | | |
+
+*(Una fila por intento de contacto real. No se rellena ninguna fila hasta
+que la conversación haya ocurrido de verdad.)*
 
 ---
 
@@ -243,20 +265,25 @@ identificar indirectamente al proveedor competidor y, de ahí, al cliente).
 
 ## 9. Plan de 14 días
 
-| Día | Acción |
-|---|---|
-| 1 | Elegir ciudad(es); crear/completar este documento; empezar lista de 20 candidatos |
-| 2 | Completar lista de 20; clasificar A/B/Descartar |
-| 3 | Contactar 5-7 de Prioridad A; activar §10.1 (círculo cercano) |
-| 4 | Contactar 5-7 más; responder en 1-2 foros/grupos locales (§10.2/10.3) |
-| 5 | Completar los 20 contactos; un único recordatorio a quien no respondió |
-| 6 | Seguimiento de conversaciones abiertas; revisar si entró algún lead real |
-| 7 | Balance semanal: contactados, respuestas, "mándame uno"; ajustar guion si repite objeción |
-| 8-9 | En cuanto entre el primer lead real: ejecutar venta completa (§6-§8). Si no, intensificar §10 |
-| 10 | Seguimiento 48-72h de la primera venta |
-| 11-12 | Repetir ciclo con leads nuevos; intentar segunda venta al mismo profesional |
-| 13 | Recopilar objeciones y respuestas; borrador de conclusiones |
-| 14 | Cerrar con los datos disponibles; aplicar §12; decidir GO/CONDITIONAL GO/NO-GO |
+Día 1 = **15/09/2026** (martes). Día 14 = **28/09/2026** (lunes). La
+preparación (ciudad, documento, lista de 20 candidatos) ya está hecha antes
+de empezar — el Día 1 arranca directamente en verificación + contacto, no
+en preparación.
+
+| Día | Fecha | Acción |
+|---|---|---|
+| 1 | 15/09 | Verificar a mano los 5 de Prioridad A (§3, filas 1-5): teléfono si falta, actividad reciente, ¿aparecen en Habitissimo/Cronoshare? Contactarlos ese mismo día con el guion de §4 |
+| 2 | 16/09 | Confirmar el enlace exacto de AIRE TECNICOS y Equipo Alma Climatización (filas 19-20) y completarlas; verificar y contactar 5-7 de Prioridad B |
+| 3 | 17/09 | Contactar 5-7 más de Prioridad B; activar §10.2/10.3 (grupos locales y foros, ya que no hay contacto personal disponible) |
+| 4 | 18/09 | Completar los 20 contactos (los últimos de Prioridad B, o sustitutos si alguno se descartó en la verificación) |
+| 5 | 19/09 | Un único recordatorio a quien no respondió; seguir publicando/respondiendo en foros y grupos |
+| 6 | 20/09 | Seguimiento de conversaciones abiertas; revisar si entró algún lead real |
+| 7 | 21/09 | Balance semanal: contactados, respuestas, "mándame uno"; ajustar guion si se repite una objeción |
+| 8-9 | 22-23/09 | En cuanto entre el primer lead real: ejecutar venta completa (§6-§8). Si no, intensificar §10 |
+| 10 | 24/09 | Seguimiento 48-72h de la primera venta |
+| 11-12 | 25-26/09 | Repetir ciclo con leads nuevos; intentar segunda venta al mismo profesional |
+| 13 | 27/09 | Recopilar objeciones y respuestas; borrador de conclusiones |
+| 14 | 28/09 | Cerrar con los datos disponibles; aplicar §12; decidir GO/CONDITIONAL GO/NO-GO |
 
 ## 10. Estrategias para conseguir los primeros leads reales (sin construir nada)
 
@@ -272,13 +299,46 @@ identificar indirectamente al proveedor competidor y, de ahí, al cliente).
 **No priorizar (generan tráfico, no intención):** compartir en redes propias
 sin contexto, publicidad de pago genérica, comunidades de emprendimiento.
 
-## 11. Decisiones pendientes (bloquean el arranque real)
+## 11. Decisiones ya tomadas y verificación manual pendiente
 
-- [x] Ciudad(es)/zona(s) objetivo → **Madrid**.
-- [ ] Fecha de inicio real de los 14 días.
-- [x] ¿Hay algún contacto personal que vaya a instalar A/C pronto? → **No, ninguno ahora mismo** — la estrategia §10.1 (contacto personal) queda descartada de entrada; empezar directamente por §10.2/10.3 (grupos locales y foros) en paralelo a contactar profesionales.
-- [ ] Completar las 11 filas restantes de la tabla de §3 y verificar cada "por verificar" en Google Maps/Instagram/Wallapop (no se puede hacer desde este entorno — acceso a esas webs bloqueado, ver nota en §3).
-- [ ] Fijar el día 1 real y empezar a contactar a los 9 candidatos de la tabla de §3 (empezando por los 3 de Prioridad A).
+- [x] Ciudad(es)/zona(s) objetivo → **Madrid** (única zona del experimento).
+- [x] Fecha de inicio real → **15/09/2026** = Día 1 del plan de §9.
+- [x] ¿Contacto personal con instalación de A/C pronto? → **No, ninguno** — la
+      estrategia §10.1 queda descartada de entrada; arrancar directamente
+      por §10.2/10.3 (grupos locales y foros) en paralelo a contactar a los
+      20 de la tabla de §3.
+- [x] Lista de 20 candidatos → completa en §3 (18 identificados por
+      búsqueda + 2 pendientes de que aportes tú el enlace exacto).
+
+**Verificación manual que te corresponde a ti antes de contactar a cada
+uno** (no es posible hacerla desde este entorno — Google Maps, Instagram,
+Wallapop y la mayoría de webs de empresa están bloqueadas aquí):
+
+1. **Confirmar que instalan A/C residencial de verdad**, no solo
+   mantenimiento/recarga de gas o climatización industrial — entrar a la
+   web o perfil de cada fila y comprobarlo (ya viene marcado "Sí" en la
+   tabla cuando la búsqueda lo mencionaba explícitamente, pero merece un
+   vistazo antes de escribir).
+2. **Confirmar actividad reciente** (reseñas de Google de los últimos 2-3
+   meses, o publicaciones recientes en Instagram/Facebook/TikTok) — descartar
+   cualquiera que parezca inactivo.
+3. **Obtener el teléfono/WhatsApp** de las filas marcadas "no encontrado por
+   búsqueda" (son la mayoría — 12 de las 18 identificadas) directamente en
+   su Google Business o web.
+4. **Comprobar si ya aparecen en Habitissimo o Cronoshare** (entrar a esos
+   directorios y buscar el nombre exacto) — es la señal de Prioridad A/B
+   más importante que no he podido verificar yo.
+5. **Estimar tamaño real de plantilla** — la columna "Tamaño (inferido)" es
+   una suposición mía a partir del texto encontrado, nunca un dato
+   confirmado; en la propia llamada/WhatsApp inicial ya se puede preguntar
+   directamente ("¿trabajáis solos o con más gente?") si no está claro antes.
+6. **Localizar el enlace/perfil exacto de AIRE TECNICOS y Equipo Alma
+   Climatización** (filas 19-20) — la búsqueda no los identificó de forma
+   única; con el enlace que tú ya tienes localizado se puede completar el
+   resto de columnas.
+7. **Añadir cualquier candidato que se descarte** (inactivo, solo
+   mantenimiento, empresa grande con delegaciones) a una lista de reemplazo
+   — mejor tener 2-3 de reserva antes de empezar a llamar el Día 1.
 
 ## 12. Definición de éxito
 
