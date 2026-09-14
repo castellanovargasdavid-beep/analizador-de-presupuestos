@@ -20,6 +20,12 @@ celda vacía ("—" o "pendiente") es preferible a un dato inventado.
 No estamos validando "¿os parece una buena idea?". Estamos validando dinero
 cobrado y recompra.
 
+**Actualización 14/09/2026**: el primer contacto real con un instalador de
+Madrid aportó señales cualitativas que podrían refinar qué hace que un lead
+sea vendible — ver §17. Es una única fuente, no una validación: no cambia
+el precio (sigue en 15€) ni la hipótesis de arriba, solo añade hipótesis
+nuevas a comprobar con las siguientes conversaciones.
+
 ---
 
 ## 1. Parámetros del experimento
@@ -199,12 +205,24 @@ que la conversación haya ocurrido de verdad.)*
 > respuesta literal en "Objeción" — es el dato más valioso de una
 > conversación que no cierra.)*
 
+### Si pregunta "¿y si el teléfono es falso o el lead no vale?" *(añadido 14/09/2026, tras la pregunta real de un instalador — decirlo en voz alta desde ahora, no esperar a que lo pregunten)*
+> "Si el teléfono no existe o está desconectado, o el email rebota, te doy
+> otro lead sin coste — el defecto sería del dato de contacto, no tuyo. Lo
+> único que no cubro es que el cliente decida no contratar después de
+> hablar contigo: eso ya depende de la conversación, no del lead." *(Ver
+> política completa, marcada como propuesta a validar, en §17.4.)*
+
 ### Llamada telefónica (3-5 minutos)
 1. (30s) Presentación: quién eres, qué es Presupuesto Claro, ¿tiene 3 minutos?
 2. (1 min) "¿Cómo consigues clientes nuevos ahora mismo?" (escuchar sin interrumpir)
-3. (30s) "¿Has usado Habitissimo, Cronoshare o algo parecido?" (si sí, indagar experiencia)
+3. (30s) "¿Has usado Habitissimo, Cronoshare o algo parecido?" (si sí, indagar experiencia — dejar que mencione él solo el problema de leads compartidos antes de preguntarlo directamente, ver §17.3 punto 1)
 4. (1 min) Oferta: caso real + 15€/exclusivo/sin suscripción
 5. (30s) Cierre: "¿te apunto para el próximo caso de tu zona?" → registrar
+
+**Desde el 14/09/2026, añadir 2-3 de las preguntas de §17.3** en el hueco
+entre los pasos 3 y 4 (sin alargar la llamada más de 1-2 minutos extra) —
+sirven para comprobar si el patrón de exclusividad/fotos/plazo/estacionalidad
+de §17 se repite con este profesional.
 
 ---
 
@@ -234,6 +252,13 @@ que la conversación haya ocurrido de verdad.)*
 contratar?** No es un lead inválido. El lead cumplió su función (persona
 real, intención real, contactada). No hay reembolso por esto — es riesgo
 comercial normal, no un defecto del producto.
+
+**Nota (14/09/2026)**: esta sigue siendo la definición base de lead
+válido/inválido/disputable, sin cambios. §17.4 propone una capa adicional
+("lead cualificado" y una política de reemplazo dicha en voz alta durante
+la venta, no solo aplicada puertas adentro) a partir del feedback de un
+único instalador — está marcada explícitamente como propuesta para validar,
+no sustituye lo anterior.
 
 ---
 
@@ -388,3 +413,129 @@ profesionales sin relación personal previa, a precio sostenible.
 - Total recompras:
 - Decisión: GO / CONDITIONAL GO / NO-GO
 - Próximo experimento:
+
+---
+
+## 17. Feedback de mercado — instalador real #1 (Madrid, 14/09/2026)
+
+**Regla de esta sección, la misma que rige todo el documento**: lo que
+sigue es la opinión y experiencia declarada de **un único profesional**,
+recogida antes de que arrancara formalmente el Día 1 del experimento. No es
+una venta, no es una recompra, no cuenta para los umbrales de §12. Es
+evidencia cualitativa que genera hipótesis a comprobar con los próximos
+10-15 instaladores — nada más.
+
+**Nota metodológica pendiente de aclarar**: no consta si este profesional
+es uno de los 20 de §3 o un contacto informal aparte. Si es uno de los 20,
+hay que reflejar también esta conversación en el registro de §3
+(columnas Fecha/Canal/Interés/Objeción) cuando se identifique cuál fila es.
+Si es un contacto fuera de la lista, esta conversación es informativa pero
+**no suma** a las "20 conversaciones" que exige el experimento — Fase 5 del
+Bloque 13 fue explícita: el objetivo son 20 conversaciones dentro del
+experimento diseñado, no 20 opiniones recogidas por cualquier vía.
+
+### 17.1 Hechos observados (lo que dijo, tal cual — no verificado de forma independiente)
+
+- Declara que en mayo-julio muchos instaladores están saturados de trabajo
+  estacional y podrían no necesitar leads en esa ventana.
+- Declara que en octubre-marzo la demanda de instalación cae, y que en esa
+  ventana pagar por un lead tendría más valor para el profesional.
+- Declara haber tenido experiencia (propia o de referencia) con
+  Habitissimo/Cronoshare, y que el problema principal que percibe es que el
+  mismo contacto se comparte con varios instaladores a la vez.
+- Declara que pagaría 15€ por un lead **si fuera realmente exclusivo**
+  — condicional, dicho en conversación, no una compra real.
+- Señala tres elementos que él valora especialmente en un lead: (1)
+  intención real de compra y cuándo quiere instalar, (2) fotografías del
+  lugar de instalación, (3) que el cliente ya conozca y acepte un rango de
+  precio razonable antes de contactarle.
+- Estima que una visita previa de valoración sin cierre le cuesta entre
+  30-40€ (desplazamiento + tiempo) — es el ancla económica que explica por
+  qué le importa tanto la cualificación previa del lead.
+- Declara que "solo estar mirando precios" no le parece intención
+  suficiente para considerar un lead bueno.
+- Preguntó directamente qué política de reemplazo existiría si el teléfono
+  fuese falso o el lead no fuese válido — ya había una definición para esto
+  en §5, pero no se comunicaba proactivamente en el guion antes de que la
+  preguntaran (corregido en §4, ver la nueva rama del guion).
+
+### 17.2 Hipótesis nuevas a validar (derivadas de este único caso — NO confirmadas)
+
+| # | Hipótesis | Basada en |
+|---|---|---|
+| H1 | La exclusividad real es un requisito crítico (determinante del sí/no), no solo una preferencia | "Pagaría 15€ si fuera realmente exclusivo" + queja espontánea sobre Habitissimo/Cronoshare |
+| H2 | La intención real de compra y el plazo concreto aumentan el valor percibido del lead más que otros atributos técnicos | Lo cita como el primero de sus tres elementos clave |
+| H3 | Incluir fotografías del lugar puede aumentar significativamente el valor percibido del lead | Lo cita como segundo elemento clave; conecta directamente con el coste de la visita previa (30-40€) |
+| H4 | Que el cliente conozca y acepte previamente un rango de precio razonable puede reducir la proporción de leads de baja calidad ("solo mirando precios") | Lo cita como tercer elemento clave, y rechaza explícitamente "solo mirar precios" como intención válida |
+| H5 | El valor que un profesional está dispuesto a pagar por un lead varía significativamente según la temporada (menor interés mayo-julio, mayor octubre-marzo) | Declaración directa sobre saturación estacional |
+
+### 17.3 Todavía no validado (explícito, para no confundir con evidencia)
+
+- Que estas 5 hipótesis se repitan con otros profesionales — n=1 hasta ahora.
+- Que el precio de 15€ se acepte en la práctica bajo estas condiciones — fue una afirmación condicional, no una compra real.
+- Que las fotografías cambien de verdad la decisión de compra — es una preferencia declarada, no observada en comportamiento.
+- Que la estacionalidad afecte igual a autónomos pequeños que a empresas medianas — tamaño de este profesional sin confirmar.
+- Cualquier disposición a pagar **más** de 15€ en temporada baja — mencionado como intuición propia, no cuantificado por el profesional.
+
+### 17.4 Preguntas para los próximos 10-15 instaladores (para comprobar si el patrón se repite)
+
+Orden importante: preguntar primero las abiertas (1 y 8), luego las
+dirigidas — preguntar la dirigida antes sesga la respuesta (si preguntas
+"¿te importa la exclusividad?" antes de dejar que lo mencione solo, ya no
+sabes si de verdad le importaba o solo está de acuerdo contigo).
+
+1. *(abierta)* "¿Cuál dirías que es el problema #1 que has tenido con leads comprados hasta ahora?" — registrar si menciona "compartido/varios instaladores" sin que se le sugiera.
+2. "¿Alguna vez has recibido un lead compartido con otros instaladores? ¿Cambiaría tu disposición a pagar si supieras que el contacto es solo tuyo?" *(H1)*
+3. "Cuando te llega un cliente potencial, ¿qué necesitas saber primero para decidir si merece la pena llamar? ¿Te ayuda saber cuándo quiere instalar?" *(H2)*
+4. "Si el lead viniera con 2-3 fotos del lugar de instalación, ¿te ahorraría una visita previa de valoración? ¿Cuánto te cuesta hoy esa visita en tiempo/desplazamiento?" *(H3)*
+5. "Si el cliente ya ha visto y aceptado un rango de precio orientativo antes de contactarte, ¿crees que eso filtraría a quien solo está mirando precios?" *(H4)*
+6. "¿En qué meses tienes más trabajo y en cuáles menos? ¿Pagarías más por un lead en temporada baja que en alta?" *(H5)*
+7. "Si el lead fuera exclusivo, con el plazo de instalación indicado, unas fotos, y el cliente ya hubiera aceptado un rango de precio, ¿pagarías 15€ por él?" *(validación directa de precio bajo las nuevas condiciones — sin subir de 15€ todavía, ver regla del Bloque 13)*
+8. *(abierta)* "¿Qué esperarías que pasara si el teléfono que te diera no existiera o estuviera desconectado?" — comparar la respuesta espontánea con la política propuesta en §17.5, antes de decírsela.
+
+### 17.5 Política experimental de lead cualificado y reemplazo — **PROPUESTA PARA VALIDACIÓN, no decisión definitiva**
+
+Esto no sustituye la definición de lead válido/inválido/disputable de §5,
+que sigue siendo la base. Añade una capa opcional por encima, a probar:
+
+**Lead "cualificado" (propuesta, mismo precio de 15€ mientras se valida —
+regla explícita del Bloque 13: no subir el precio en esta ronda)**: un
+lead válido (§5) que además incluye, cuando esté disponible:
+- Plazo de instalación declarado por el cliente (aunque sea aproximado:
+  "esta semana", "este mes", "sin prisa todavía").
+- Fotografías del lugar de instalación — **aviso explícito: no se
+  implementa ninguna funcionalidad de subida de fotos** (regla del
+  Bloque 13). Si un cliente quiere aportarlas, se recogerían a mano por
+  WhatsApp/email como parte de la entrega manual ya existente (§6/§8), no
+  por ningún cambio en el producto.
+- Confirmación de que el cliente vio y aceptó el rango de precio calculado
+  antes de pedir el contacto — **esto ya ocurre hoy sin tocar nada**: el
+  flujo actual del producto (calculadora → resultado con rango → botón
+  "Solicitar presupuestos") ya muestra el rango antes de que el usuario
+  pida contacto. No hace falta construir nada para que este punto sea
+  cierto; solo falta decirlo explícitamente al profesional en la venta.
+
+**Política de reemplazo (propuesta, a decir en voz alta desde ya — ver
+nueva rama del guion en §4)**: si el teléfono facilitado no existe, está
+desconectado, o el email rebota, se entrega un lead de reemplazo sin coste
+adicional. Coincide con "lead disputable" de §5 — la única novedad es
+comunicarlo proactivamente durante la venta, no solo aplicarlo si el
+profesional se queja después.
+
+**Qué NO cambia con esta propuesta**: el precio sigue en 15€; no hay
+segmentación de precio por temporada todavía (H5 se registra, no se
+aplica); no se garantiza que todo lead incluya plazo/fotos (dependen de lo
+que el cliente aporte voluntariamente, nunca se le exige).
+
+### 17.6 Métricas a medir en las próximas 10-15 conversaciones
+
+| Métrica | Preguntado a (n) | Respuesta afirmativa | % | Nota |
+|---|---|---|---|---|
+| Considera la exclusividad imprescindible (no solo preferible) | 1 | 1 | 100% | n=1, no representativo — no sacar conclusiones hasta n≥8-10 |
+| Considera importantes las fotografías del lugar | 1 | 1 | 100% | ídem |
+| Considera importante que el cliente acepte antes un rango de precio | 1 | 1 | 100% | ídem |
+| Pagaría 15€ bajo estas condiciones (exclusivo + plazo + fotos + rango aceptado) | 1 | 1 (condicional) | 100% | ídem — ninguna ha sido todavía una compra real |
+
+*(Actualizar esta tabla tras cada una de las próximas 10-15 conversaciones,
+usando las preguntas de §17.4. Con n=1 cualquier porcentaje es 100% o 0% y
+no significa nada — el valor de esta tabla empieza a partir de n≈8-10.)*
