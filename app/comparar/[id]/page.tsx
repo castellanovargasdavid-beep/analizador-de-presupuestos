@@ -321,7 +321,11 @@ export default async function CompararPage({ params }: { params: Promise<{ id: s
         </div>
       </Card>
 
-      <LeadRequestCard estimateId={estimate.id} comparisonId={id} />
+      <LeadRequestCard
+        estimateId={estimate.id}
+        comparisonId={id}
+        rangeLabel={`${formatEUR(estimate.totalMin)} – ${formatEUR(estimate.totalMax)}`}
+      />
 
       <p className="mt-8 text-center text-sm text-neutral-500">
         <Badge tone="neutral">Metodología {methodologyVersion}</Badge> — esto no es una tasación profesional ni una

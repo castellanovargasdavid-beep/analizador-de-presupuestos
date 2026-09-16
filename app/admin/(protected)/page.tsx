@@ -33,12 +33,28 @@ export default async function AdminDashboardPage() {
           <p className="text-sm font-semibold text-neutral-500">FAQs activas</p>
           <p className="mt-1 text-3xl font-bold text-neutral-950">{stats.activeFaqs}</p>
         </Card>
+        <Card>
+          <p className="text-sm font-semibold text-neutral-500">Profesionales activos</p>
+          <p className="mt-1 text-3xl font-bold text-neutral-950">
+            {stats.activeProfessionals} / {stats.totalProfessionals}
+          </p>
+        </Card>
       </div>
 
       <Card className="mt-6">
         <h2 className="font-bold text-neutral-950">Leads por estado</h2>
         <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-5">
-          {["nuevo", "en_revision", "contactado", "sin_cobertura", "cerrado"].map((status) => {
+          {[
+            "nuevo",
+            "validado",
+            "descartado",
+            "asignado",
+            "enviado",
+            "contactado",
+            "sin_cobertura",
+            "cerrado",
+            "con_incidencia",
+          ].map((status) => {
             const row = stats.leadsByStatus.find((r) => r.status === status);
             return (
               <div key={status}>
@@ -48,9 +64,12 @@ export default async function AdminDashboardPage() {
             );
           })}
         </div>
-        <div className="mt-4">
+        <div className="mt-4 flex flex-wrap gap-4">
           <Link href="/admin/leads" className="text-sm font-semibold text-brand-700 hover:underline">
             Ver todos los leads →
+          </Link>
+          <Link href="/admin/profesionales" className="text-sm font-semibold text-brand-700 hover:underline">
+            Gestionar profesionales →
           </Link>
         </div>
       </Card>

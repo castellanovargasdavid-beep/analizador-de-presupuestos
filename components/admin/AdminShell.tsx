@@ -40,6 +40,7 @@ const NAV_SECTIONS: { title: string; links: { href: string; label: string }[] }[
     title: "Negocio",
     links: [
       { href: "/admin/leads", label: "Leads" },
+      { href: "/admin/profesionales", label: "Profesionales" },
       { href: "/admin/estimaciones", label: "Explicar estimación" },
     ],
   },

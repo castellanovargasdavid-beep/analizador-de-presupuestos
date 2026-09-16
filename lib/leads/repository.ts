@@ -34,7 +34,13 @@ export async function createLead(args: CreateLeadArgs): Promise<{ leadId: string
       contactEmail: args.form.contactEmail,
       contactPhone: args.form.contactPhone ?? null,
       description: args.form.description ?? null,
-      status: matches.length > 0 ? "en_revision" : "sin_cobertura",
+      desiredTimeframe: args.form.desiredTimeframe ?? null,
+      purchaseIntent: args.form.purchaseIntent ?? null,
+      rangeAcknowledged: args.form.rangeAcknowledged,
+      // "sin_cobertura" se asigna automáticamente porque es un hecho verificable ya
+      // (no hay ningún profesional verificado para este servicio/zona); el resto del
+      // ciclo de vida (validar, descartar, asignar...) es siempre una decisión humana.
+      status: matches.length > 0 ? "nuevo" : "sin_cobertura",
       consentVersion: LEAD_CONSENT_VERSION,
       consentAcceptedAt: new Date(),
       entryPath: args.entryPath ?? null,

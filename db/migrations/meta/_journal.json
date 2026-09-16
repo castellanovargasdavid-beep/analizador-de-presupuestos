@@ -50,6 +50,13 @@
       "when": 1789208716989,
       "tag": "0006_wooden_doctor_doom",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789572922487,
+      "tag": "0007_curvy_stature",
+      "breakpoints": true
     }
   ]
 }

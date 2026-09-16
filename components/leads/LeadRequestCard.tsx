@@ -5,17 +5,19 @@ import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
 import { CheckCircleIcon, ShieldIcon } from "../ui/icons";
 import { submitLeadAction } from "@/lib/leads/actions";
-import { LEAD_CONSENT_TEXT } from "@/lib/leads/validation";
+import { LEAD_CONSENT_TEXT, LEAD_PURCHASE_INTENT_OPTIONS } from "@/lib/leads/validation";
 import { getEntryPath, getSessionId, trackEvent } from "@/lib/analytics/track";
 
 interface LeadRequestCardProps {
   estimateId: string;
   comparisonId?: string;
+  /** Rango mostrado en esta página (p. ej. "828 € – 1529 €"), para que el usuario confirme que lo ha visto. */
+  rangeLabel: string;
 }
 
 type Status = "collapsed" | "open" | "sending" | "sent" | "error";
 
-const PLAZO_OPTIONS = [
+const TIMEFRAME_OPTIONS = [
   { value: "", label: "Prefiero no indicarlo" },
   { value: "Lo antes posible", label: "Lo antes posible" },
   { value: "En las próximas semanas", label: "En las próximas semanas" },
@@ -30,11 +32,16 @@ const PLAZO_OPTIONS = [
  * El mensaje tras enviar es deliberadamente honesto: no prometemos "3
  * presupuestos en 24h" ni matches instantáneos que hoy no existen, porque
  * `professionals` está vacía hasta que haya una red real verificada.
+ *
+ * Los campos de plazo, intención de compra y confirmación del rango existen
+ * para mejorar la calidad del lead que llega a un profesional (evidencia de
+ * mercado en docs/COMMERCIAL-VALIDATION-EXPERIMENT.md §17), no para alargar
+ * el formulario porque sí — todos menos la confirmación del rango son
+ * opcionales.
  */
-export function LeadRequestCard({ estimateId, comparisonId }: LeadRequestCardProps) {
+export function LeadRequestCard({ estimateId, comparisonId, rangeLabel }: LeadRequestCardProps) {
   const [status, setStatus] = useState<Status>("collapsed");
   const [error, setError] = useState<string | null>(null);
-  const [plazo, setPlazo] = useState("");
 
   function openForm() {
     setStatus("open");
@@ -47,12 +54,6 @@ export function LeadRequestCard({ estimateId, comparisonId }: LeadRequestCardPro
     setError(null);
 
     const form = new FormData(e.currentTarget);
-    const description = form.get("description");
-    const descriptionText = typeof description === "string" ? description.trim() : "";
-    const descriptionWithPlazo = plazo
-      ? `Plazo deseado: ${plazo}.${descriptionText ? ` ${descriptionText}` : ""}`
-      : descriptionText;
-
     const result = await submitLeadAction(
       {
         estimateId,
@@ -65,7 +66,10 @@ export function LeadRequestCard({ estimateId, comparisonId }: LeadRequestCardPro
         contactName: form.get("contactName"),
         contactEmail: form.get("contactEmail"),
         contactPhone: form.get("contactPhone"),
-        description: descriptionWithPlazo || undefined,
+        description: form.get("description"),
+        desiredTimeframe: form.get("desiredTimeframe"),
+        purchaseIntent: form.get("purchaseIntent") || undefined,
+        rangeAcknowledged: form.get("rangeAcknowledged") === "on",
         consentAccepted: form.get("consentAccepted") === "on",
         website: form.get("website"),
       },
@@ -169,20 +173,38 @@ export function LeadRequestCard({ estimateId, comparisonId }: LeadRequestCardPro
           />
         </label>
 
-        <label className="block">
-          <span className="text-sm font-medium text-neutral-800">¿Para cuándo lo necesitas? (opcional)</span>
-          <select
-            value={plazo}
-            onChange={(e) => setPlazo(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-950 focus:border-brand-500 focus:outline-none"
-          >
-            {PLAZO_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block">
+            <span className="text-sm font-medium text-neutral-800">¿Para cuándo lo necesitas? (opcional)</span>
+            <select
+              name="desiredTimeframe"
+              defaultValue=""
+              className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-950 focus:border-brand-500 focus:outline-none"
+            >
+              {TIMEFRAME_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-medium text-neutral-800">¿En qué punto estás? (opcional)</span>
+            <select
+              name="purchaseIntent"
+              defaultValue=""
+              className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-950 focus:border-brand-500 focus:outline-none"
+            >
+              <option value="">Prefiero no indicarlo</option>
+              {LEAD_PURCHASE_INTENT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
 
         <label className="block">
           <span className="text-sm font-medium text-neutral-800">Detalles adicionales (opcional)</span>
@@ -192,6 +214,14 @@ export function LeadRequestCard({ estimateId, comparisonId }: LeadRequestCardPro
             maxLength={2000}
             className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
           />
+        </label>
+
+        <label className="flex items-start gap-3 rounded-lg bg-info-bg p-3">
+          <input name="rangeAcknowledged" type="checkbox" required className="mt-1" />
+          <span className="text-sm text-info-text">
+            Entiendo que <strong>{rangeLabel}</strong> es una estimación orientativa, no un precio cerrado, y quiero
+            pedir presupuestos igualmente.
+          </span>
         </label>
 
         <label className="flex items-start gap-3">

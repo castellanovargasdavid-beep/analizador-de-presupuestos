@@ -49,19 +49,45 @@ export const budgetLineStatusEnum = pgEnum("budget_line_status", [
 export const budgetLineCategoryEnum = pgEnum("budget_line_category", ["equipo", "mano_obra", "extras", "otros"]);
 
 /**
- * `nuevo`: recién capturado, sin revisar. `en_revision`: en proceso de
- * buscar un profesional adecuado. `contactado`: se ha puesto a un
- * profesional en contacto con el usuario. `sin_cobertura`: no hay ningún
- * profesional verificado para ese servicio/zona todavía (estado honesto,
- * no se inventa un match). `cerrado`: fin del ciclo de vida del lead.
+ * Ciclo de vida completo de un lead, gestionado a mano por un administrador
+ * (no hay automatización de matching todavía):
+ * `nuevo`: recién capturado, sin revisar.
+ * `validado`: un administrador ha comprobado que la solicitud es real y útil.
+ * `descartado`: se ha decidido no gestionarla (ver `discardReason`).
+ * `asignado`: se ha decidido a qué profesional se le ofrecerá.
+ * `enviado`: los datos ya se han hecho llegar al profesional asignado.
+ * `contactado`: el profesional ha contactado con el usuario (ver `contactOutcome`).
+ * `sin_cobertura`: no hay ningún profesional verificado para ese servicio/zona
+ * todavía (estado honesto, no se inventa un match) — se asigna automáticamente
+ * al crear el lead, nunca a mano.
+ * `cerrado`: fin del ciclo de vida del lead, con o sin contratación.
+ * `con_incidencia`: algo ha ido mal en el proceso (ver `incidentNotes`) y
+ * requiere atención manual antes de continuar.
  */
 export const leadStatusEnum = pgEnum("lead_status", [
   "nuevo",
-  "en_revision",
+  "validado",
+  "descartado",
+  "asignado",
+  "enviado",
   "contactado",
   "sin_cobertura",
   "cerrado",
+  "con_incidencia",
 ]);
+
+/** Nivel de intención de compra declarado por el propio usuario al pedir presupuestos. */
+export const leadPurchaseIntentEnum = pgEnum("lead_purchase_intent", [
+  "explorando",
+  "comparando_presupuestos",
+  "listo_para_contratar",
+]);
+
+/**
+ * Cobro manual al profesional por el lead (sin pasarela de pago todavía).
+ * `no_aplica`: no procede cobro (p. ej. lead descartado o sin cobertura).
+ */
+export const leadPaymentStatusEnum = pgEnum("lead_payment_status", ["no_aplica", "pendiente", "pagado"]);
 
 export const professionalVerificationStatusEnum = pgEnum("professional_verification_status", [
   "pendiente",
@@ -456,9 +482,28 @@ export const leads = pgTable("leads", {
   contactPhone: text("contact_phone"),
   /** Descripción libre adicional del trabajo, aparte de lo ya capturado en la Estimate/UserBudget. */
   description: text("description"),
+  /** Cuándo quiere el usuario que se haga la instalación, en sus propias palabras (sin normativizar). */
+  desiredTimeframe: text("desired_timeframe"),
+  purchaseIntent: leadPurchaseIntentEnum("purchase_intent"),
+  /** El usuario ha confirmado explícitamente que entiende que el rango es orientativo, no un precio cerrado. */
+  rangeAcknowledged: boolean("range_acknowledged").notNull().default(false),
   status: leadStatusEnum("status").notNull().default("nuevo"),
+  /** Motivo por el que se ha descartado, obligatorio cuando status = descartado (ver validación de la acción). */
+  discardReason: text("discard_reason"),
   /** Profesional al que se ha asignado, si alguno (null mientras no haya red real). */
   assignedProfessionalId: uuid("assigned_professional_id").references(() => professionals.id),
+  validatedAt: timestamp("validated_at", { withTimezone: true }),
+  assignedAt: timestamp("assigned_at", { withTimezone: true }),
+  sentToProfessionalAt: timestamp("sent_to_professional_at", { withTimezone: true }),
+  contactedAt: timestamp("contacted_at", { withTimezone: true }),
+  /** Resultado del contacto del profesional con el usuario, en texto libre (no hay integración real con el profesional todavía). */
+  contactOutcome: text("contact_outcome"),
+  /** Precio que el profesional y el usuario han acordado, si se ha registrado a mano. */
+  agreedPrice: money("agreed_price"),
+  paymentStatus: leadPaymentStatusEnum("payment_status").notNull().default("no_aplica"),
+  paymentAmount: money("payment_amount"),
+  paymentRegisteredAt: timestamp("payment_registered_at", { withTimezone: true }),
+  incidentNotes: text("incident_notes"),
   /** Texto exacto del consentimiento aceptado, para poder demostrarlo (auditoría RGPD). */
   consentVersion: text("consent_version").notNull(),
   consentAcceptedAt: timestamp("consent_accepted_at", { withTimezone: true }).notNull(),

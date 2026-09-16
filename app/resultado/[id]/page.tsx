@@ -145,7 +145,10 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
         </div>
       </Card>
 
-      <LeadRequestCard estimateId={estimate.id} />
+      <LeadRequestCard
+        estimateId={estimate.id}
+        rangeLabel={`${formatEUR(estimate.totalMin)} – ${formatEUR(estimate.totalMax)}`}
+      />
         </>
       )}
 
