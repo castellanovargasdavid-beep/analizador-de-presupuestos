@@ -3,6 +3,7 @@ import { Container } from "../ui/Container";
 import { ShieldIcon } from "../ui/icons";
 
 const NAV_LINKS = [
+  { href: "/servicios", label: "Servicios" },
   { href: "/aire-acondicionado", label: "Aire acondicionado" },
   { href: "/guias", label: "Guías" },
   { href: "/metodologia", label: "Metodología" },

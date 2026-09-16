@@ -176,3 +176,50 @@ matching algorítmico, notificaciones automáticas, roles múltiples de
 admin: ninguno tiene una justificación excepcional que lo saque de la
 Fase C definida por el propio encargo. Implementarlos ahora sería
 "programar a ciegas" sobre una red de profesionales que todavía no existe.
+
+---
+
+## Addendum (mismo día) — Catálogo multi-servicio
+
+Ampliación de una categoría (aire acondicionado) a una arquitectura
+**categoría → profesión → servicio** reutilizable, sin duplicar código
+por profesión. Resumen honesto de lo que cambia:
+
+| Área | Estado | Evidencia | Pendientes |
+|---|---|---|---|
+| Esquema categoría→profesión→servicio | **COMPLETADA** | Migración `0008_huge_randall.sql`: tabla `professions`, `service_types.professionId`/`availabilityStatus`, `service_interest_signups`, `leads.estimateId` ahora nullable. Aplicada y verificada en local. | Aplicar en Neon (mismo bloqueo que la migración `0007`, ver §7 más abajo) |
+| Catálogo público (`/servicios`, `/servicios/[categoria]`, `/profesiones`, `/profesiones/[profesion]`) | **COMPLETADA** | 4 categorías, 12 profesiones, 17 servicios generados estáticamente (`generateStaticParams`, conjunto cerrado a lo publicado en /admin) | — |
+| Aire acondicionado sigue `disponible` y funcional | **COMPLETADA** | Recorrido A-E repetido tras el cambio de esquema: calculadora, resultado, comparación, sin regresiones. Cero cambios en `lib/estimation/engine.ts`, `Wizard.tsx` ni las rutas `/aire-acondicionado/**`. | — |
+| Solicitud sin calculadora (`solo_solicitud`) | **COMPLETADA** | `DirectRequestForm` + `submitDirectLeadAction`: un ejemplo real activado (Fontanero → "Reparar una fuga"), verificado end-to-end contra Postgres (lead creado con `estimate_id = null`) | — |
+| Aviso de interés (`proximamente`) | **COMPLETADA** | `NotifyMeForm` + `notifyMeAction` + tabla `service_interest_signups`, verificado end-to-end | — |
+| Admin distingue categoría/profesión/servicio/disponibilidad | **COMPLETADA** | `/admin/categorias`, `/admin/profesiones` (nuevo, catálogo — no confundir con `/admin/profesionales`, la red de instaladores), `/admin/servicios` (con selector de profesión y disponibilidad) | — |
+| SEO del catálogo | **COMPLETADA CON LIMITACIONES** | Metadata, canonical, JSON-LD (`CollectionPage`/`Service`), breadcrumbs y sitemap actualizados para las nuevas rutas | Ninguna página nueva se ha indexado todavía en Google (son horas de antigüedad); no se puede verificar posicionamiento real, solo la corrección técnica |
+
+**Un fallo real se encontró y se corrigió durante la verificación**:
+`directLeadFormSchema` exigía un campo `serviceTypeId` que
+`DirectRequestForm` nunca enviaba (se pasa aparte, como argumento de la
+función, no como campo del formulario) — la validación fallaba en
+silencio y ninguna solicitud `solo_solicitud` se guardaba. Corregido
+quitando ese campo del esquema (nunca se leía de `parsed.data` de todas
+formas). Verificado de nuevo con una consulta directa a Postgres tras la
+corrección.
+
+**Un segundo fallo se encontró en el propio proceso de backfill**: el
+script `db/seed-catalog.ts` asignaba la profesión al servicio de
+instalación de A/C ya existente, pero no corregía su
+`availabilityStatus` (se quedaba en el valor por defecto `proximamente`
+de la columna nueva) — la home mostraba "Aire acondicionado" como
+"Próximamente" pese a tener calculadora real. Corregido para que el
+backfill también fuerce la disponibilidad correcta cuando no coincide.
+
+**Decisión de alcance documentada**: de la lista de ejemplo del encargo
+(Reformas, Instalaciones, Exterior y mantenimiento, con sus profesiones),
+se ha sembrado el árbol completo como catálogo informativo
+(`proximamente`), y **un único servicio** (`Reparar una fuga`, Fontanero)
+como `solo_solicitud`, para demostrar ese camino end-to-end sin construir
+más superficie de la necesaria. Ningún precio ni calculadora se ha
+inventado para ninguno de ellos — ver `docs/ADDING-NEW-SERVICE.md` para
+el proceso de llevarlos a `disponible` cuando haya datos reales.
+
+Verificación repetida tras este addendum: `tsc --noEmit`, `eslint .`,
+`vitest run` (120/120), `next build` (67 rutas) — todos limpios.

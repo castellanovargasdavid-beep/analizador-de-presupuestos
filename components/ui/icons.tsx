@@ -1,4 +1,5 @@
 /** Iconos mínimos en SVG inline — sin librería externa, sin dependencia de red. */
+import type { ReactElement } from "react";
 
 export function CheckCircleIcon({ className = "size-4" }: { className?: string }) {
   return (
@@ -117,4 +118,117 @@ export function AcDuctIcon({ className = "size-6" }: { className?: string }) {
       <path strokeLinecap="round" d="M6 8h12M6 12h12M6 16h12" />
     </svg>
   );
+}
+
+/** Copo de nieve — climatización. */
+export function SnowflakeIcon({ className = "size-6" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className={className} aria-hidden="true">
+      <path strokeLinecap="round" d="M12 2v20M4.5 6.5l15 11M19.5 6.5l-15 11" />
+      <path strokeLinecap="round" d="M12 2l-2 2m2-2l2 2M12 22l-2-2m2 2l2-2M4.5 6.5l2.7-.4m-2.7.4l.6 2.6M19.5 6.5l-2.7-.4m2.7.4l-.6 2.6M19.5 17.5l-2.7.4m2.7-.4l-.6-2.6M4.5 17.5l2.7.4m-2.7-.4l.6-2.6" />
+    </svg>
+  );
+}
+
+/** Llana de albañil — reformas/obra. */
+export function TrowelIcon({ className = "size-6" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className={className} aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M14 3l7 7-8.5 8.5-7-7L14 3Z" />
+      <path strokeLinecap="round" d="M4.5 19.5l3-3" />
+    </svg>
+  );
+}
+
+/** Rodillo de pintor. */
+export function PaintIcon({ className = "size-6" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className={className} aria-hidden="true">
+      <rect x="3" y="4" width="12" height="6" rx="1.5" strokeLinejoin="round" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 10v4h4a2 2 0 012 2v4" />
+    </svg>
+  );
+}
+
+/** Llave inglesa — fontanería/instalaciones. */
+export function WrenchIcon({ className = "size-6" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className={className} aria-hidden="true">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M14.7 6.3a4 4 0 00-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 005.4-5.4l-2.5 2.5-2-2 2.5-2.5Z"
+      />
+    </svg>
+  );
+}
+
+/** Rayo — electricidad. */
+export function BoltIcon({ className = "size-6" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M13 2 3 14h6l-2 8 10-12h-6l2-8Z" />
+    </svg>
+  );
+}
+
+/** Árbol — jardinería y exterior. */
+export function TreeIcon({ className = "size-6" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className={className} aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l5 7h-3l4 6h-4v5h-4v-5H6l4-6H7l5-7Z" />
+    </svg>
+  );
+}
+
+/** Llave — cerrajería. */
+export function KeyIcon({ className = "size-6" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className={className} aria-hidden="true">
+      <circle cx="8" cy="15" r="3.5" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 12.5 19 4M19 4l2 2M16.5 6.5l2 2" />
+    </svg>
+  );
+}
+
+/** Reloj — estado "próximamente". */
+export function ClockIcon({ className = "size-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 20 20" fill="currentColor" className={className} aria-hidden="true">
+      <path
+        fillRule="evenodd"
+        d="M10 18a8 8 0 100-16 8 8 0 000 16Zm.75-12a.75.75 0 00-1.5 0v4c0 .2.08.39.22.53l2.5 2.5a.75.75 0 101.06-1.06L10.75 9.7V6Z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+
+/** Lupa — buscador del catálogo. */
+export function SearchIcon({ className = "size-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 20 20" fill="currentColor" className={className} aria-hidden="true">
+      <path
+        fillRule="evenodd"
+        d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11ZM2 9a7 7 0 1112.45 4.39l3.58 3.58a.75.75 0 11-1.06 1.06l-3.58-3.58A7 7 0 012 9Z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+
+const CATEGORY_ICON_MAP: Record<string, (props: { className?: string }) => ReactElement> = {
+  ac: SnowflakeIcon,
+  trowel: TrowelIcon,
+  paint: PaintIcon,
+  wrench: WrenchIcon,
+  bolt: BoltIcon,
+  tree: TreeIcon,
+  key: KeyIcon,
+};
+
+/** Icono genérico por `iconKey` (categoría/profesión), con una casa como último recurso. */
+export function CatalogIcon({ iconKey, className = "size-6" }: { iconKey: string | null | undefined; className?: string }) {
+  const Icon = (iconKey && CATEGORY_ICON_MAP[iconKey]) || ShieldIcon;
+  return <Icon className={className} />;
 }

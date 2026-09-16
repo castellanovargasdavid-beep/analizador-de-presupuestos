@@ -11,6 +11,7 @@ export interface CategoryFormValues {
   slug?: string;
   name?: string;
   description?: string | null;
+  iconKey?: string | null;
   isActive?: boolean;
 }
 
@@ -46,6 +47,16 @@ export function CategoryForm({ initial }: { initial?: CategoryFormValues }) {
           name="description"
           defaultValue={initial?.description ?? ""}
           rows={2}
+          className="mt-1 w-full rounded-lg border border-neutral-200 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none"
+        />
+      </label>
+      <label className="block">
+        <span className="text-xs font-semibold text-neutral-600">
+          Icono (opcional: ac, trowel, paint, wrench, bolt, tree, key)
+        </span>
+        <input
+          name="iconKey"
+          defaultValue={initial?.iconKey ?? ""}
           className="mt-1 w-full rounded-lg border border-neutral-200 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none"
         />
       </label>

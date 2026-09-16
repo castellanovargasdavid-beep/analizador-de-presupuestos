@@ -4,12 +4,13 @@ import { Card } from "@/components/ui/Card";
 import { LinkButton } from "@/components/ui/Button";
 import { RangeBar } from "@/components/result/RangeBar";
 import { FAQSection } from "@/components/content/FAQSection";
-import { ArrowRightIcon, CheckCircleIcon, ShieldIcon } from "@/components/ui/icons";
+import { ArrowRightIcon, CatalogIcon, CheckCircleIcon, ShieldIcon } from "@/components/ui/icons";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { pageMetadata } from "@/lib/metadata";
 import { loadPricingContext } from "@/lib/estimation/repository";
 import { evaluateEstimate } from "@/lib/estimation/engine";
 import { listFaqsForPage } from "@/lib/content/repository";
+import { listCatalogTree } from "@/lib/catalog/repository";
 
 export const metadata = pageMetadata({
   title: "Presupuesto Claro — ¿Te están cobrando de más?",
@@ -20,15 +21,6 @@ export const metadata = pageMetadata({
 });
 
 export const revalidate = 3600;
-
-const CATEGORIAS = [
-  { nombre: "Aire acondicionado", href: "/aire-acondicionado", activo: true },
-  { nombre: "Reforma de baño", activo: false },
-  { nombre: "Reforma de cocina", activo: false },
-  { nombre: "Ventanas", activo: false },
-  { nombre: "Electricidad", activo: false },
-  { nombre: "Fontanería", activo: false },
-];
 
 const PASOS = [
   {
@@ -46,9 +38,10 @@ const PASOS = [
 ];
 
 export default async function HomePage() {
-  const [context, faqs] = await Promise.all([
+  const [context, faqs, categories] = await Promise.all([
     loadPricingContext("aire-acondicionado", "instalacion"),
     listFaqsForPage("home"),
+    listCatalogTree(),
   ]);
   const baseVatEligibility = { clientePersonaFisicaUsoParticular: true, viviendaMasDeDosAnos: true };
 
@@ -145,27 +138,38 @@ export default async function HomePage() {
       <section className="bg-white py-16">
         <Container>
           <h2 className="text-center text-2xl font-bold text-neutral-950">Elige qué quieres comprobar</h2>
+          <p className="mx-auto mt-2 max-w-xl text-center text-neutral-700">
+            Empezamos por aire acondicionado. El resto de categorías ya están en el catálogo, con calculadora o sin
+            ella según cuánta información fiable tenemos todavía.
+          </p>
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
-            {CATEGORIAS.map((cat) =>
-              cat.activo && cat.href ? (
-                <Link
-                  key={cat.nombre}
-                  href={cat.href}
-                  className="rounded-xl border border-neutral-200 bg-white p-5 font-semibold text-neutral-950 transition-colors hover:border-brand-400 hover:bg-brand-50"
-                >
-                  {cat.nombre}
-                  <span className="mt-1 block text-sm font-normal text-brand-600">Disponible ahora →</span>
+            {categories.map((cat) => {
+              const hasDisponible = cat.professions.some((p) => p.services.some((s) => s.availabilityStatus === "disponible"));
+              return (
+                <Link key={cat.id} href={`/servicios/${cat.slug}`} className="block">
+                  <div
+                    className={`h-full rounded-xl border p-5 font-semibold transition-colors ${
+                      hasDisponible
+                        ? "border-neutral-200 bg-white text-neutral-950 hover:border-brand-400 hover:bg-brand-50"
+                        : "border-dashed border-neutral-200 text-neutral-500 hover:border-brand-300"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <CatalogIcon iconKey={cat.iconKey} className="size-5 text-brand-700" />
+                      {cat.name}
+                    </div>
+                    <span className={`mt-1 block text-sm font-normal ${hasDisponible ? "text-brand-600" : ""}`}>
+                      {hasDisponible ? "Calculadora disponible →" : "Próximamente →"}
+                    </span>
+                  </div>
                 </Link>
-              ) : (
-                <div
-                  key={cat.nombre}
-                  className="rounded-xl border border-dashed border-neutral-200 p-5 font-semibold text-neutral-400"
-                >
-                  {cat.nombre}
-                  <span className="mt-1 block text-sm font-normal">Próximamente</span>
-                </div>
-              ),
-            )}
+              );
+            })}
+          </div>
+          <div className="mt-8 text-center">
+            <LinkButton href="/servicios" variant="secondary">
+              Ver el catálogo completo <ArrowRightIcon />
+            </LinkButton>
           </div>
         </Container>
       </section>

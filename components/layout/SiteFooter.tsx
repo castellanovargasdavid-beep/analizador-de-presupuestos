@@ -13,6 +13,12 @@ export function SiteFooter() {
         </div>
         <div className="flex flex-col gap-2">
           <span className="font-semibold text-neutral-950">Herramienta</span>
+          <Link href="/servicios" className="hover:text-brand-700">
+            Catálogo de servicios
+          </Link>
+          <Link href="/profesiones" className="hover:text-brand-700">
+            Profesiones
+          </Link>
           <Link href="/aire-acondicionado/instalacion" className="hover:text-brand-700">
             Calculadora de instalación A/C
           </Link>

@@ -3,10 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db } from "@/db/client";
-import { materialLevels, serviceCategories, serviceTypes } from "@/db/schema";
+import { materialLevels, professions, serviceCategories, serviceTypes } from "@/db/schema";
 import { recordAudit } from "@/lib/admin/audit";
 import { toSafeError, type ErrorKind } from "@/lib/errors/safe-message";
-import { categoryFormSchema, materialLevelFormSchema, serviceFormSchema } from "./validation";
+import { catalogProfessionFormSchema, categoryFormSchema, materialLevelFormSchema, serviceFormSchema } from "./validation";
 
 export interface ActionResult {
   ok: boolean;
@@ -24,6 +24,7 @@ export async function saveCategoryAction(_prev: ActionResult, formData: FormData
     slug: formData.get("slug"),
     name: formData.get("name"),
     description: formData.get("description"),
+    iconKey: formData.get("iconKey"),
     isActive: parseBool(formData, "isActive"),
   });
   if (!parsed.success) {
@@ -51,11 +52,13 @@ export async function saveServiceAction(_prev: ActionResult, formData: FormData)
   const parsed = serviceFormSchema.safeParse({
     id: formData.get("id") || undefined,
     categoryId: formData.get("categoryId"),
+    professionId: formData.get("professionId"),
     slug: formData.get("slug"),
     name: formData.get("name"),
     description: formData.get("description"),
     unitLabel: formData.get("unitLabel"),
     vatReducedEligible: parseBool(formData, "vatReducedEligible"),
+    availabilityStatus: formData.get("availabilityStatus"),
     isActive: parseBool(formData, "isActive"),
   });
   if (!parsed.success) {
@@ -76,6 +79,44 @@ export async function saveServiceAction(_prev: ActionResult, formData: FormData)
   }
 
   revalidatePath("/admin/servicios");
+  revalidatePath("/servicios");
+  revalidatePath("/profesiones");
+  revalidatePath("/");
+  return { ok: true };
+}
+
+export async function saveCatalogProfessionAction(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
+  const parsed = catalogProfessionFormSchema.safeParse({
+    id: formData.get("id") || undefined,
+    categoryId: formData.get("categoryId"),
+    slug: formData.get("slug"),
+    name: formData.get("name"),
+    description: formData.get("description"),
+    iconKey: formData.get("iconKey"),
+    status: formData.get("status"),
+    sortOrder: formData.get("sortOrder"),
+  });
+  if (!parsed.success) {
+    return { ok: false, errorKind: "validation", error: parsed.error.issues.map((i) => i.message).join("; ") };
+  }
+
+  try {
+    if (parsed.data.id) {
+      await db.update(professions).set(parsed.data).where(eq(professions.id, parsed.data.id));
+      await recordAudit({ action: "update", entityType: "profession", entityId: parsed.data.id, summary: `Editada profesión "${parsed.data.name}"` });
+    } else {
+      const [row] = await db.insert(professions).values(parsed.data).returning({ id: professions.id });
+      await recordAudit({ action: "create", entityType: "profession", entityId: row.id, summary: `Creada profesión "${parsed.data.name}"` });
+    }
+  } catch (err) {
+    const safe = toSafeError(err, "saveCatalogProfessionAction", "No se ha podido guardar la profesión.");
+    return { ok: false, error: safe.message, errorKind: safe.kind };
+  }
+
+  revalidatePath("/admin/profesiones");
+  revalidatePath("/servicios");
+  revalidatePath("/profesiones");
+  revalidatePath("/");
   return { ok: true };
 }
 

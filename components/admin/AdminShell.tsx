@@ -7,6 +7,7 @@ const NAV_SECTIONS: { title: string; links: { href: string; label: string }[] }[
     title: "Catálogo",
     links: [
       { href: "/admin/categorias", label: "Categorías" },
+      { href: "/admin/profesiones", label: "Profesiones (catálogo)" },
       { href: "/admin/servicios", label: "Servicios" },
       { href: "/admin/materiales", label: "Materiales" },
     ],
@@ -40,7 +41,7 @@ const NAV_SECTIONS: { title: string; links: { href: string; label: string }[] }[
     title: "Negocio",
     links: [
       { href: "/admin/leads", label: "Leads" },
-      { href: "/admin/profesionales", label: "Profesionales" },
+      { href: "/admin/profesionales", label: "Profesionales (red de instaladores)" },
       { href: "/admin/estimaciones", label: "Explicar estimación" },
     ],
   },

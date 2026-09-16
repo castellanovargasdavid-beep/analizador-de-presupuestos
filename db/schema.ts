@@ -130,9 +130,51 @@ export const serviceCategories = pgTable("service_categories", {
   slug: text("slug").notNull().unique(),
   name: text("name").notNull(),
   description: text("description"),
+  /** Clave de icono para el catálogo público (ver components/ui/icons.tsx), null = icono genérico. */
+  iconKey: text("icon_key"),
   isActive: boolean("is_active").notNull().default(true),
   ...timestamps,
 });
+
+/**
+ * Profesión dentro de una categoría (p. ej. "Instalador de aire
+ * acondicionado" bajo "Aire acondicionado", o "Fontanero" bajo
+ * "Instalaciones"). Capa de catalogación/SEO, separada de `serviceTypes`
+ * a propósito: varias profesiones pueden compartir categoría, y una
+ * profesión agrupa uno o más servicios concretos (cada uno con su propia
+ * regla de precio, si la tiene).
+ */
+export const professions = pgTable(
+  "professions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    categoryId: uuid("category_id")
+      .notNull()
+      .references(() => serviceCategories.id),
+    slug: text("slug").notNull(),
+    name: text("name").notNull(),
+    /** Texto informativo real para la página pública de la profesión (nunca relleno genérico). */
+    description: text("description"),
+    iconKey: text("icon_key"),
+    /** `borrador` nunca se sirve en público — mismo criterio que seo_guides/seo_questions. */
+    status: contentStatusEnum("status").notNull().default("borrador"),
+    sortOrder: integer("sort_order").notNull().default(0),
+    ...timestamps,
+  },
+  (t) => [unique().on(t.categoryId, t.slug)],
+);
+
+/**
+ * `disponible`: tiene calculadora funcional y solicitud de presupuesto.
+ * `solo_solicitud`: sin estimación automática todavía, pero se puede pedir
+ * presupuesto directamente (sin inventar un rango de precio sin datos).
+ * `proximamente`: solo página informativa + aviso de interés, nada más.
+ */
+export const serviceAvailabilityEnum = pgEnum("service_availability", [
+  "disponible",
+  "solo_solicitud",
+  "proximamente",
+]);
 
 export const serviceTypes = pgTable(
   "service_types",
@@ -141,6 +183,13 @@ export const serviceTypes = pgTable(
     categoryId: uuid("category_id")
       .notNull()
       .references(() => serviceCategories.id),
+    /**
+     * Nullable a propósito: es la capa de catalogación añadida después de
+     * `categoryId`, y no todos los entornos tienen por qué haber hecho ya
+     * el backfill. La validación de que un servicio nuevo elija profesión
+     * vive en `lib/admin/catalog/validation.ts`, no aquí.
+     */
+    professionId: uuid("profession_id").references(() => professions.id),
     slug: text("slug").notNull(),
     name: text("name").notNull(),
     description: text("description"),
@@ -148,6 +197,7 @@ export const serviceTypes = pgTable(
     unitLabel: text("unit_label"),
     /** Si este servicio puede llegar a tributar al 10% de IVA reducido (obra en vivienda particular). */
     vatReducedEligible: boolean("vat_reduced_eligible").notNull().default(true),
+    availabilityStatus: serviceAvailabilityEnum("availability_status").notNull().default("proximamente"),
     isActive: boolean("is_active").notNull().default(true),
     ...timestamps,
   },
@@ -468,9 +518,13 @@ export const professionalServiceAreas = pgTable("professional_service_areas", {
 
 export const leads = pgTable("leads", {
   id: uuid("id").primaryKey().defaultRandom(),
-  estimateId: uuid("estimate_id")
-    .notNull()
-    .references(() => estimates.id),
+  /**
+   * Nullable a propósito: un servicio en estado `solo_solicitud` (sin
+   * calculadora todavía) genera un lead sin haber pasado por una
+   * Estimate — pedir presupuesto no puede depender de inventar un rango
+   * de precio que no existe.
+   */
+  estimateId: uuid("estimate_id").references(() => estimates.id),
   /** Si el lead viene de una comparación (ya tenía un presupuesto), se referencia también. */
   comparisonId: uuid("comparison_id").references(() => budgetComparisons.id),
   serviceTypeId: uuid("service_type_id")
@@ -509,6 +563,21 @@ export const leads = pgTable("leads", {
   consentAcceptedAt: timestamp("consent_accepted_at", { withTimezone: true }).notNull(),
   /** De qué landing page SEO viene la sesión que generó este lead (atribución). */
   entryPath: text("entry_path"),
+  ...timestamps,
+});
+
+/**
+ * "Avísame cuando esté disponible" para un servicio en estado
+ * `proximamente`. Deliberadamente mínima (solo email): no es un lead, no
+ * se comparte con ningún profesional, solo mide interés real por servicio
+ * antes de invertir en construir su calculadora.
+ */
+export const serviceInterestSignups = pgTable("service_interest_signups", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  serviceTypeId: uuid("service_type_id")
+    .notNull()
+    .references(() => serviceTypes.id),
+  email: text("email").notNull(),
   ...timestamps,
 });
 

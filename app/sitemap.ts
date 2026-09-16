@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL as BASE_URL } from "@/lib/site";
 import { listPublishedGuideSlugs, listPublishedQuestionSlugs } from "@/lib/content/repository";
+import { listCategorySlugs, listProfessionSlugs } from "@/lib/catalog/repository";
 
 /**
  * Páginas estáticas + las generadas por el contenido publicado desde
@@ -12,6 +13,8 @@ import { listPublishedGuideSlugs, listPublishedQuestionSlugs } from "@/lib/conte
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPaths = [
     "",
+    "/servicios",
+    "/profesiones",
     "/aire-acondicionado",
     "/aire-acondicionado/instalacion",
     "/aire-acondicionado/instalacion/analizar-presupuesto",
@@ -29,11 +32,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/legal/aviso-legal",
   ];
 
-  const [guiaSlugs, preguntaSlugs] = await Promise.all([listPublishedGuideSlugs(), listPublishedQuestionSlugs()]);
+  const [guiaSlugs, preguntaSlugs, categorySlugs, professionSlugs] = await Promise.all([
+    listPublishedGuideSlugs(),
+    listPublishedQuestionSlugs(),
+    listCategorySlugs(),
+    listProfessionSlugs(),
+  ]);
   const guiaPaths = guiaSlugs.map((slug) => `/guias/${slug}`);
   const preguntaPaths = preguntaSlugs.map((slug) => `/preguntas/${slug}`);
+  const categoryPaths = categorySlugs.map((slug) => `/servicios/${slug}`);
+  const professionPaths = professionSlugs.map((slug) => `/profesiones/${slug}`);
 
-  return [...staticPaths, ...guiaPaths, ...preguntaPaths].map((path) => ({
+  return [...staticPaths, ...guiaPaths, ...preguntaPaths, ...categoryPaths, ...professionPaths].map((path) => ({
     url: `${BASE_URL}${path}`,
     lastModified: new Date(),
   }));

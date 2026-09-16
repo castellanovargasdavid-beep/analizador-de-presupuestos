@@ -28,6 +28,24 @@ Distinción explícita que se mantiene en todo el producto:
 
 Documentos de arquitectura más detallados en `docs/00-arquitectura-producto.md` a `docs/08-arquitectura-administrativa.md`.
 
+## Catálogo multi-servicio
+
+La plataforma no está atada al aire acondicionado: el catálogo público
+(`/servicios`, `/profesiones`) es **categoría → profesión → servicio**,
+gestionable desde `/admin` sin desplegar código. Cada servicio tiene un
+estado de madurez independiente:
+
+- **`disponible`** — calculadora funcional + comparación + solicitud de
+  presupuesto (hoy, solo instalación de aire acondicionado).
+- **`solo_solicitud`** — sin calculadora todavía, pero se puede pedir
+  presupuesto directamente (`lib/catalog/actions.ts#submitDirectLeadAction`,
+  crea un lead con `estimateId = null`).
+- **`proximamente`** — página informativa real + formulario "avísame"
+  (`service_interest_signups`), sin inventar ningún precio.
+
+Para añadir una profesión o servicio nuevo (con o sin calculadora), ver
+**`docs/ADDING-NEW-SERVICE.md`**.
+
 ## Instalación local
 
 Requisitos: Node.js 20+, PostgreSQL 16 accesible localmente.
