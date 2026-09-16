@@ -7,13 +7,16 @@ import { Badge } from "@/components/ui/Badge";
 import { LinkButton } from "@/components/ui/Button";
 import { RangeBar } from "@/components/result/RangeBar";
 import { Breakdown } from "@/components/result/Breakdown";
+import { ShareActions } from "@/components/result/ShareActions";
 import { Breadcrumbs } from "@/components/content/Breadcrumbs";
 import { LeadRequestCard } from "@/components/leads/LeadRequestCard";
 import { ImpossibleResultNotice } from "@/components/result/ImpossibleResultNotice";
 import { TrackOnMount } from "@/components/analytics/TrackOnMount";
 import { getEstimateForDisplay } from "@/lib/estimation/repository";
 import { isPlausibleRange } from "@/lib/estimation/sanity";
+import { buildEstimateSummaryText } from "@/lib/estimation/summary";
 import { formatEUR } from "@/lib/format";
+import { absoluteUrl } from "@/lib/site";
 import { AlertTriangleIcon, InfoIcon } from "@/components/ui/icons";
 import { pageMetadata } from "@/lib/metadata";
 
@@ -46,6 +49,13 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
   const superaRite = typeof rite.quantities?.potenciaKw === "number" && rite.quantities.potenciaKw > 5;
   const isResultPlausible = isPlausibleRange(estimate.totalMin, estimate.totalMax);
 
+  const summaryText = buildEstimateSummaryText({
+    totalRange: { min: estimate.totalMin, max: estimate.totalMax },
+    vatRatePct: estimate.vatRatePct,
+    items: items.map((item) => ({ label: item.label, min: item.min, max: item.max, confidence: item.confidence })),
+    url: absoluteUrl(`/resultado/${estimate.id}`),
+  });
+
   return (
     <Container className="max-w-3xl py-12">
       <TrackOnMount eventType="estimate_result_view" estimateId={estimate.id} />
@@ -63,6 +73,10 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
         <ImpossibleResultNotice />
       ) : (
         <>
+      <div className="mt-4">
+        <ShareActions summaryText={summaryText} fileName="estimacion-aire-acondicionado.txt" />
+      </div>
+
       <Card className="mt-6">
         <p className="text-sm font-semibold text-neutral-500">Estimación orientativa (IVA incluido)</p>
         <p className="mt-1 text-4xl font-bold tabular-nums text-brand-800">

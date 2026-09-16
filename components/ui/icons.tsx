@@ -59,3 +59,62 @@ export function ShieldIcon({ className = "size-4" }: { className?: string }) {
     </svg>
   );
 }
+
+export function ChevronDownIcon({ className = "size-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 20 20" fill="currentColor" className={className} aria-hidden="true">
+      <path
+        fillRule="evenodd"
+        d="M5.22 7.22a.75.75 0 011.06 0L10 10.94l3.72-3.72a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.22 8.28a.75.75 0 010-1.06Z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+
+/** Split de 1 unidad interior: una sola unidad montada en pared. */
+export function AcSingleIcon({ className = "size-6" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className={className} aria-hidden="true">
+      <rect x="3" y="6" width="14" height="5" rx="1.5" strokeLinejoin="round" />
+      <circle cx="6" cy="8.5" r="0.6" fill="currentColor" stroke="none" />
+      <path strokeLinecap="round" d="M5 13.5v2M9 13.5v3M13 13.5v2" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 15v3a1.5 1.5 0 001.5 1.5H21" />
+    </svg>
+  );
+}
+
+/** Multisplit de 2 unidades interiores conectadas a una sola exterior. */
+export function AcDoubleIcon({ className = "size-6" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className={className} aria-hidden="true">
+      <rect x="1.5" y="4.5" width="10" height="4.5" rx="1.2" strokeLinejoin="round" />
+      <rect x="1.5" y="13" width="10" height="4.5" rx="1.2" strokeLinejoin="round" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M14.5 6.75H18.5a1.5 1.5 0 011.5 1.5V15.25" />
+      <rect x="18" y="15" width="4.5" height="6" rx="1" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** Multisplit de 3 unidades interiores conectadas a una sola exterior. */
+export function AcTripleIcon({ className = "size-6" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className={className} aria-hidden="true">
+      <rect x="1" y="2.5" width="9" height="4" rx="1.1" strokeLinejoin="round" />
+      <rect x="1" y="10" width="9" height="4" rx="1.1" strokeLinejoin="round" />
+      <rect x="1" y="17.5" width="9" height="4" rx="1.1" strokeLinejoin="round" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13 4.5H17.5a1.5 1.5 0 011.5 1.5V15.25" />
+      <rect x="18" y="15" width="4.5" height="6" rx="1" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** Sistema por conductos: rejilla de techo. */
+export function AcDuctIcon({ className = "size-6" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className={className} aria-hidden="true">
+      <rect x="3" y="4" width="18" height="16" rx="1.5" strokeLinejoin="round" />
+      <path strokeLinecap="round" d="M6 8h12M6 12h12M6 16h12" />
+    </svg>
+  );
+}

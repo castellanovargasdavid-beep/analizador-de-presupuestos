@@ -1,5 +1,6 @@
 import { formatEUR, formatPct } from "@/lib/format";
 import type { AlertSignal, BudgetLineVerdict, Verdict } from "./compare";
+import type { Confidence } from "./types";
 
 const VERDICT_TITULO: Record<Verdict, string> = {
   dentro_de_rango: "Dentro del rango estimado",
@@ -73,6 +74,39 @@ export function buildComparisonSummaryText(args: SummaryArgs): string {
   lines.push(`Enlace a este resultado: ${args.url}`);
   lines.push("");
   lines.push("Esto es una estimación orientativa, no una tasación profesional ni una acusación hacia tu instalador.");
+
+  return lines.join("\n");
+}
+
+export interface EstimateSummaryArgs {
+  totalRange: { min: number; max: number };
+  vatRatePct: number;
+  items: { label: string; min: number; max: number; confidence: Confidence }[];
+  url: string;
+}
+
+/** Resumen en texto plano descargable de una estimación (sin comparación de presupuesto). */
+export function buildEstimateSummaryText(args: EstimateSummaryArgs): string {
+  const lines: string[] = [];
+  lines.push("PRESUPUESTO CLARO — Resumen de tu estimación");
+  lines.push("Instalación de aire acondicionado");
+  lines.push("");
+  lines.push(
+    `Estimación orientativa (IVA al ${Math.round(args.vatRatePct * 100)}% incluido): ${formatEUR(args.totalRange.min)} - ${formatEUR(args.totalRange.max)}`,
+  );
+  lines.push("");
+
+  if (args.items.length > 0) {
+    lines.push("DESGLOSE POR PARTIDAS");
+    for (const item of args.items) {
+      lines.push(`- ${item.label}: ${formatEUR(item.min)} - ${formatEUR(item.max)} (fiabilidad ${item.confidence})`);
+    }
+    lines.push("");
+  }
+
+  lines.push(`Enlace a este resultado: ${args.url}`);
+  lines.push("");
+  lines.push("Esto es una estimación orientativa, no una tasación profesional ni un precio garantizado.");
 
   return lines.join("\n");
 }

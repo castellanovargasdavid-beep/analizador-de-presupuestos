@@ -59,37 +59,48 @@ export default async function InstalacionPage() {
   ]);
 
   return (
-    <Container className="max-w-3xl py-12">
-      <Breadcrumbs
-        items={[
-          { label: "Inicio", href: "/" },
-          { label: "Aire acondicionado", href: "/aire-acondicionado" },
-          { label: "Instalación" },
-        ]}
-      />
+    <>
+      {/*
+        La calculadora es la "app" del producto: vive en su propia zona con
+        fondo diferenciado y ancho mayor, separada con un borde explícito
+        del contenido SEO de abajo. Sin esto, el asistente quedaba como un
+        formulario más dentro de un artículo largo (hallazgo de auditoría).
+      */}
+      <section className="border-b border-neutral-200 bg-gradient-to-b from-brand-50/60 to-neutral-50 py-10 sm:py-14">
+        <Container className="max-w-3xl">
+          <Breadcrumbs
+            items={[
+              { label: "Inicio", href: "/" },
+              { label: "Aire acondicionado", href: "/aire-acondicionado" },
+              { label: "Instalación" },
+            ]}
+          />
 
-      <h1 className="mt-3 text-3xl font-bold tracking-tight text-neutral-950 sm:text-4xl">
-        ¿Cuánto cuesta instalar aire acondicionado?
-      </h1>
-      <p className="mt-4 text-lg text-neutral-700">
-        Responde unas pocas preguntas sobre tu instalación y obtén un rango de precio orientativo con el desglose por
-        partidas, para saber qué es razonable esperar antes de pedir presupuestos.
-      </p>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight text-neutral-950 sm:text-4xl">
+            ¿Cuánto cuesta instalar aire acondicionado?
+          </h1>
+          <p className="mt-4 text-lg text-neutral-700">
+            Responde unas pocas preguntas sobre tu instalación y obtén un rango de precio orientativo con el desglose
+            por partidas, para saber qué es razonable esperar antes de pedir presupuestos.
+          </p>
 
-      <div className="mt-6 flex flex-wrap gap-3 text-sm">
-        <Link
-          href="/aire-acondicionado/instalacion/analizar-presupuesto"
-          className="rounded-full bg-brand-50 px-4 py-2 font-semibold text-brand-800 hover:bg-brand-100"
-        >
-          ¿Ya tienes un presupuesto? Analízalo directamente →
-        </Link>
-      </div>
+          <div className="mt-6 flex flex-wrap gap-3 text-sm">
+            <Link
+              href="/aire-acondicionado/instalacion/analizar-presupuesto"
+              className="rounded-full bg-white px-4 py-2 font-semibold text-brand-800 shadow-sm hover:bg-brand-100"
+            >
+              ¿Ya tienes un presupuesto? Analízalo directamente →
+            </Link>
+          </div>
+        </Container>
 
-      <div className="mt-10">
-        <Wizard mode="calculadora" regions={regions} materialLevels={materialLevels} />
-      </div>
+        <Container className="mt-8 max-w-2xl">
+          <Wizard mode="calculadora" regions={regions} materialLevels={materialLevels} />
+        </Container>
+      </section>
 
-      <div className="mt-16 space-y-16">
+      <Container className="max-w-3xl py-16">
+      <div className="space-y-16">
         <section>
           <h2 className="text-xl font-bold text-neutral-950">Ejemplos reales de cálculo</h2>
           <p className="mt-1 text-sm text-neutral-500">
@@ -193,6 +204,7 @@ export default async function InstalacionPage() {
           url: absoluteUrl("/aire-acondicionado/instalacion"),
         }}
       />
-    </Container>
+      </Container>
+    </>
   );
 }

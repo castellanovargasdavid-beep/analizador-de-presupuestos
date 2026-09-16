@@ -45,14 +45,14 @@ export function RangeBar({
         </div>
       )}
 
-      <div className="relative h-3 rounded-full bg-neutral-200">
+      <div className="relative h-5 rounded-full bg-neutral-200">
         <div
-          className="absolute h-3 rounded-full bg-brand-300"
+          className="absolute h-5 rounded-full bg-gradient-to-r from-brand-400 to-brand-600 transition-[width,left] duration-700 ease-out"
           style={{ left: `${rangeStartPct}%`, width: `${rangeWidthPct}%` }}
         />
         {markerPct !== null && marker && (
           <div
-            className={`absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-white ${toneToBar[marker.tone]}`}
+            className={`absolute top-1/2 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-white ${toneToBar[marker.tone]}`}
             style={{ left: `${markerPct}%` }}
           />
         )}

@@ -15,6 +15,13 @@ interface LeadRequestCardProps {
 
 type Status = "collapsed" | "open" | "sending" | "sent" | "error";
 
+const PLAZO_OPTIONS = [
+  { value: "", label: "Prefiero no indicarlo" },
+  { value: "Lo antes posible", label: "Lo antes posible" },
+  { value: "En las próximas semanas", label: "En las próximas semanas" },
+  { value: "Todavía estoy valorando opciones", label: "Todavía estoy valorando opciones" },
+] as const;
+
 /**
  * CTA de lead, colapsado por defecto: solo se convierte en formulario si el
  * usuario decide pedirlo, y solo aparece una vez en la página (nunca varias
@@ -27,6 +34,7 @@ type Status = "collapsed" | "open" | "sending" | "sent" | "error";
 export function LeadRequestCard({ estimateId, comparisonId }: LeadRequestCardProps) {
   const [status, setStatus] = useState<Status>("collapsed");
   const [error, setError] = useState<string | null>(null);
+  const [plazo, setPlazo] = useState("");
 
   function openForm() {
     setStatus("open");
@@ -39,6 +47,12 @@ export function LeadRequestCard({ estimateId, comparisonId }: LeadRequestCardPro
     setError(null);
 
     const form = new FormData(e.currentTarget);
+    const description = form.get("description");
+    const descriptionText = typeof description === "string" ? description.trim() : "";
+    const descriptionWithPlazo = plazo
+      ? `Plazo deseado: ${plazo}.${descriptionText ? ` ${descriptionText}` : ""}`
+      : descriptionText;
+
     const result = await submitLeadAction(
       {
         estimateId,
@@ -51,7 +65,7 @@ export function LeadRequestCard({ estimateId, comparisonId }: LeadRequestCardPro
         contactName: form.get("contactName"),
         contactEmail: form.get("contactEmail"),
         contactPhone: form.get("contactPhone"),
-        description: form.get("description"),
+        description: descriptionWithPlazo || undefined,
         consentAccepted: form.get("consentAccepted") === "on",
         website: form.get("website"),
       },
@@ -153,6 +167,21 @@ export function LeadRequestCard({ estimateId, comparisonId }: LeadRequestCardPro
             type="tel"
             className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
           />
+        </label>
+
+        <label className="block">
+          <span className="text-sm font-medium text-neutral-800">¿Para cuándo lo necesitas? (opcional)</span>
+          <select
+            value={plazo}
+            onChange={(e) => setPlazo(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-950 focus:border-brand-500 focus:outline-none"
+          >
+            {PLAZO_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
         </label>
 
         <label className="block">

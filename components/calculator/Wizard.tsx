@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
 import { StepIndicator } from "../ui/StepIndicator";
-import { CheckboxRow, FieldLabel, NumberField, RadioCardGroup, TextField } from "../ui/FormControls";
+import { CheckboxRow, FieldLabel, NumberField, RadioCardGroup, TextField, ToggleButtonGroup } from "../ui/FormControls";
 import { estimatePotenciaKwFromSuperficie } from "@/lib/estimation/sizing";
 import { calculateEstimateAction, compareBudgetAction } from "@/lib/estimation/actions";
 import type { CalculatorFormValues, DeclaredBudgetLineValues } from "@/lib/estimation/validation";
-import { ArrowRightIcon, AlertTriangleIcon, InfoIcon } from "../ui/icons";
+import { ArrowRightIcon, AlertTriangleIcon, InfoIcon, AcSingleIcon, AcDoubleIcon, AcTripleIcon, AcDuctIcon } from "../ui/icons";
 import { trackEvent } from "@/lib/analytics/track";
 import type { ErrorKind } from "@/lib/errors/safe-message";
 
@@ -208,10 +208,30 @@ export function Wizard({
               value={state.systemType}
               onChange={(v) => update("systemType", v)}
               options={[
-                { value: "split-1x1", title: "Split, 1 unidad interior", description: "Una habitación o estancia" },
-                { value: "split-2x1", title: "Multisplit, 2 unidades", description: "Dos estancias, un solo exterior" },
-                { value: "split-3x1", title: "Multisplit, 3 unidades", description: "Tres estancias, un solo exterior" },
-                { value: "conductos", title: "Por conductos", description: "Sistema centralizado, rejillas en techo" },
+                {
+                  value: "split-1x1",
+                  title: "Split, 1 unidad interior",
+                  description: "Una habitación o estancia",
+                  icon: <AcSingleIcon />,
+                },
+                {
+                  value: "split-2x1",
+                  title: "Multisplit, 2 unidades",
+                  description: "Dos estancias, un solo exterior",
+                  icon: <AcDoubleIcon />,
+                },
+                {
+                  value: "split-3x1",
+                  title: "Multisplit, 3 unidades",
+                  description: "Tres estancias, un solo exterior",
+                  icon: <AcTripleIcon />,
+                },
+                {
+                  value: "conductos",
+                  title: "Por conductos",
+                  description: "Sistema centralizado, rejillas en techo",
+                  icon: <AcDuctIcon />,
+                },
               ]}
             />
           </div>
@@ -346,22 +366,15 @@ export function Wizard({
             <FieldLabel hint="Determina si tu instalación podría beneficiarse del IVA reducido del 10% en la mano de obra (art. 91.Uno.2.10º Ley 37/1992). Si el equipo supera el 40% del presupuesto, no aplica igualmente.">
               ¿Es tu vivienda habitual, de uso particular, y tiene más de 2 años?
             </FieldLabel>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => update("viviendaParticularMasDeDosAnos", true)}
-                className={`rounded-lg border px-4 py-2 text-sm font-semibold ${state.viviendaParticularMasDeDosAnos ? "border-brand-600 bg-brand-50 text-brand-800" : "border-neutral-200 text-neutral-600"}`}
-              >
-                Sí
-              </button>
-              <button
-                type="button"
-                onClick={() => update("viviendaParticularMasDeDosAnos", false)}
-                className={`rounded-lg border px-4 py-2 text-sm font-semibold ${!state.viviendaParticularMasDeDosAnos ? "border-brand-600 bg-brand-50 text-brand-800" : "border-neutral-200 text-neutral-600"}`}
-              >
-                No / no lo sé
-              </button>
-            </div>
+            <ToggleButtonGroup
+              name="viviendaParticular"
+              value={state.viviendaParticularMasDeDosAnos ? "si" : "no"}
+              onChange={(v) => update("viviendaParticularMasDeDosAnos", v === "si")}
+              options={[
+                { value: "si", label: "Sí" },
+                { value: "no", label: "No / no lo sé" },
+              ]}
+            />
           </div>
         </div>
       )}
@@ -387,21 +400,16 @@ export function Wizard({
             {mode === "analizador" ? "Introduce tu presupuesto" : "¿Ya tienes un presupuesto?"}
           </h2>
           {mode === "calculadora" && (
-            <div className="mt-4 flex gap-3">
-              <button
-                type="button"
-                onClick={() => update("quiereComparar", false)}
-                className={`rounded-lg border px-4 py-2 text-sm font-semibold ${!state.quiereComparar ? "border-brand-600 bg-brand-50 text-brand-800" : "border-neutral-200 text-neutral-600"}`}
-              >
-                No, solo quiero la estimación
-              </button>
-              <button
-                type="button"
-                onClick={() => update("quiereComparar", true)}
-                className={`rounded-lg border px-4 py-2 text-sm font-semibold ${state.quiereComparar ? "border-brand-600 bg-brand-50 text-brand-800" : "border-neutral-200 text-neutral-600"}`}
-              >
-                Sí, quiero compararlo
-              </button>
+            <div className="mt-4">
+              <ToggleButtonGroup
+                name="quiereComparar"
+                value={state.quiereComparar ? "si" : "no"}
+                onChange={(v) => update("quiereComparar", v === "si")}
+                options={[
+                  { value: "no", label: "No, solo quiero la estimación" },
+                  { value: "si", label: "Sí, quiero compararlo" },
+                ]}
+              />
             </div>
           )}
 

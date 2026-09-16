@@ -1,4 +1,5 @@
 import { JsonLd } from "./JsonLd";
+import { ChevronDownIcon } from "@/components/ui/icons";
 
 export interface FAQItem {
   question: string;
@@ -20,8 +21,9 @@ export function FAQSection({ title = "Preguntas frecuentes", items }: { title?: 
       <div className="mt-4 divide-y divide-neutral-200">
         {items.map((item) => (
           <details key={item.question} className="group py-4">
-            <summary className="cursor-pointer list-none font-semibold text-neutral-950 marker:content-none">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-semibold text-neutral-950 marker:content-none">
               {item.question}
+              <ChevronDownIcon className="size-4 shrink-0 text-neutral-500 transition-transform group-open:rotate-180" />
             </summary>
             <p className="mt-2 text-neutral-700">{item.answer}</p>
           </details>
