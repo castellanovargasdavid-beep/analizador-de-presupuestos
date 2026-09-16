@@ -45,6 +45,13 @@ const NAV_SECTIONS: { title: string; links: { href: string; label: string }[] }[
       { href: "/admin/estimaciones", label: "Explicar estimación" },
     ],
   },
+  {
+    title: "Automatización",
+    links: [
+      { href: "/admin/notificaciones", label: "Notificaciones" },
+      { href: "/admin/automatizaciones", label: "Ejecuciones del cron" },
+    ],
+  },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {

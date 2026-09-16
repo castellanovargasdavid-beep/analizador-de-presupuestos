@@ -223,3 +223,62 @@ el proceso de llevarlos a `disponible` cuando haya datos reales.
 
 Verificación repetida tras este addendum: `tsc --noEmit`, `eslint .`,
 `vitest run` (120/120), `next build` (67 rutas) — todos limpios.
+
+---
+
+## Addendum 2 (misma sesión) — Plataforma real de leads automatizada
+
+Sustituye el "no implementado deliberadamente (Fase C)" del §8 original
+para el matching automático y las notificaciones: con una segunda misión
+explícita ("MISIÓN PRINCIPAL", ver `docs/REAL-LEAD-PLATFORM-PLAN.md`), se
+ha construido la máquina de estados completa, la asignación algorítmica,
+la reasignación automática por plazos, notificaciones (mock) y un portal
+mínimo de profesional. El portal de profesionales y el matching
+automático **ya no están en la lista de "pendiente"** — están
+implementados y probados. Lo que sigue sin existir es la **red real de
+profesionales** para operarlos con datos de verdad.
+
+| Área | Estado | Evidencia | Pendientes |
+|---|---|---|---|
+| Máquina de estados (27 valores, aditiva sobre los 9 anteriores) | **COMPLETADA** | Migración `0009` (ver `docs/LEAD-LIFECYCLE.md`), `lib/leads/state-machine.ts`, historial inmutable en `lead_status_history` | El plazo específico de "aceptar/rechazar" (`PROFESSIONAL_RESPONSE_WINDOW_HOURS`) está definido pero no aplicado por separado — ver limitación documentada en `docs/REASSIGNMENT-POLICY.md` |
+| Asignación algorítmica con exclusividad y bloqueo | **COMPLETADA** | `lib/leads/assignment-service.ts`: elegibilidad transparente con motivo de descarte, rotación por antigüedad, `pg_advisory_xact_lock` contra doble asignación — probado con Postgres real, incluida una prueba de concurrencia explícita | — |
+| Reasignación automática por plazos | **COMPLETADA** | `lib/leads/reassignment-service.ts` + `/api/cron/lead-deadlines` (Vercel Cron configurado en `vercel.json`, protegido por `CRON_SECRET`) | Sin cron real ejecutándose en este entorno de desarrollo — invocado manualmente durante la verificación; en producción depende de que Vercel lo dispare (ver `docs/PRODUCTION-SETUP.md`) |
+| Notificaciones | **COMPLETADA (modo simulado)** | `lib/notifications/*`, tabla `notifications`, adaptador `mock` — nunca afirma un envío real sin proveedor configurado | Ningún proveedor de email/SMS/WhatsApp real conectado — ver `docs/NOTIFICATION-SYSTEM.md` |
+| Portal de profesional (mínimo) | **COMPLETADA (versión mínima documentada)** | Login propio, `/profesional`, aceptar/rechazar, confirmar contacto, pausar plazo, enviar presupuesto, disponibilidad — ver `docs/PROFESSIONAL-ONBOARDING.md` para qué falta en esta versión mínima | Adjuntos, recuperación de contraseña autoservicio, métricas propias del profesional |
+| Panel admin ampliado | **COMPLETADA** | `/admin/leads/[id]` (línea temporal completa, reasignación manual con motivo obligatorio, pausa/reanudación de plazo), `/admin/notificaciones`, `/admin/automatizaciones`, filtros por vista operativa en `/admin/leads` | — |
+| Pruebas automatizadas de la plataforma de leads | **COMPLETADA** | 171/171 tests (`vitest run`), incluidos 27 tests de integración nuevos contra Postgres real: transiciones válidas/inválidas, elegibilidad (inactivo/no verificado/pausado/excluido/sin capacidad), asignación única bajo concurrencia, rotación, reasignación con exclusión y notificación, honestidad de las notificaciones (`simulado` nunca `enviado`), no-reasignación sin plazo vencido, detección de duplicados, ownership del portal de profesional (un profesional no puede tocar un lead ajeno) | — |
+| Red real de profesionales | **PENDIENTE (bloqueo de negocio, no técnico)** | La tabla `professionals` sigue vacía a propósito en este entorno | Incorporar profesionales reales verificados — ver `docs/PROFESSIONAL-ONBOARDING.md` |
+| Migración `0009` en producción (Neon) | **BLOQUEADA POR DEPENDENCIA EXTERNA** | Generada y verificada (aplicada e idempotente) contra Postgres local | Aplicarla en Neon — mismo procedimiento que `0007`/`0008`, ver `docs/PRODUCTION-SETUP.md` |
+
+**Un bug real de concurrencia se encontró y se corrigió durante la
+verificación con Postgres real** (no lo habría detectado ningún test que
+usara un mock de base de datos): `sendContactWarnings()` y
+`sendQuoteWarnings()` (en `lib/leads/reassignment-service.ts`) llamaban a
+`sendNotification()` **desde dentro** de la transacción que tenía
+bloqueada la fila del lead (`FOR UPDATE SKIP LOCKED`). Como
+`sendNotification()` inserta en `notifications` usando una conexión
+distinta del pool, y esa tabla tiene una clave foránea a `leads`, la
+inserción esperaba a que la transacción exterior liberase el bloqueo —
+pero la transacción exterior estaba a su vez esperando a que la
+inserción terminase. Postgres no lo detecta como un interbloqueo clásico
+(la transacción exterior no está bloqueada dentro del gestor de
+bloqueos, solo esperando al cliente), así que se habría quedado colgada
+indefinidamente en producción, bloqueando además cualquier otra consulta
+sobre esas filas. Corregido moviendo el envío de notificaciones fuera de
+la transacción (se recopila a quién avisar dentro, se notifica después de
+que la transacción confirme). Verificado de nuevo: la prueba de
+integración que lo detectó (`processDeadlines reasigna un contacto
+vencido...`) pasa en ~1,4s tras la corrección, frente a colgarse
+indefinidamente antes.
+
+**No se afirma que la plataforma de leads esté "terminada al 100%"**:
+sigue dependiendo de incorporar profesionales reales, configurar un
+proveedor de notificaciones real, verificar el cron en producción, y una
+revisión legal formal de las políticas de exclusividad/reasignación — ver
+`docs/PRODUCTION-SETUP.md` para la checklist completa.
+
+Verificación de esta fase: `tsc --noEmit`, `eslint .` — limpios;
+`vitest run` — 171/171 (0 fallos, 0 omitidos relevantes para esta
+plataforma); `next build` — limpio, todas las rutas nuevas generadas
+(`/admin/leads/[id]`, `/admin/notificaciones`, `/admin/automatizaciones`,
+`/profesional/**`, `/api/cron/lead-deadlines`).

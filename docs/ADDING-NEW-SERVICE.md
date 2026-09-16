@@ -72,6 +72,14 @@ solicitud de presupuesto sin ningún rango de precio, que crea un `lead` con
 `estimateId = null` (ver `lib/catalog/actions.ts#submitDirectLeadAction`).
 No hace falta ningún código nuevo para este paso.
 
+Desde la plataforma real de leads (ver `docs/LEAD-LIFECYCLE.md`), ese
+lead pasa automáticamente por validación y por el algoritmo de asignación
+en cuanto se crea (`lib/leads/intake-service.ts#processNewLead`) — para
+que de verdad se le asigne a alguien, tiene que existir ya al menos un
+profesional verificado, activo, con cobertura de ese `serviceTypeId` y
+región (`docs/PROFESSIONAL-ONBOARDING.md`). Sin eso, queda honestamente en
+`sin_cobertura`, no es un error del servicio nuevo.
+
 ## Paso 2 — Construir la calculadora completa (`disponible`)
 
 Esto es lo que exige trabajo de ingeniería real. Usa

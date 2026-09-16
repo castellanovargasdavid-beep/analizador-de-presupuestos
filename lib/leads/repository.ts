@@ -7,6 +7,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import { estimates, leads, professionalServiceAreas, professionals } from "@/db/schema";
 import { LEAD_CONSENT_VERSION, type LeadFormValues } from "./validation";
+import { processNewLead } from "./intake-service";
 
 export interface CreateLeadArgs {
   estimateId: string;
@@ -37,15 +38,18 @@ export async function createLead(args: CreateLeadArgs): Promise<{ leadId: string
       desiredTimeframe: args.form.desiredTimeframe ?? null,
       purchaseIntent: args.form.purchaseIntent ?? null,
       rangeAcknowledged: args.form.rangeAcknowledged,
-      // "sin_cobertura" se asigna automáticamente porque es un hecho verificable ya
-      // (no hay ningún profesional verificado para este servicio/zona); el resto del
-      // ciclo de vida (validar, descartar, asignar...) es siempre una decisión humana.
-      status: matches.length > 0 ? "nuevo" : "sin_cobertura",
+      status: "nuevo",
       consentVersion: LEAD_CONSENT_VERSION,
       consentAcceptedAt: new Date(),
       entryPath: args.entryPath ?? null,
     })
     .returning();
+
+  // Validación, detección de duplicados y primer intento de asignación —
+  // ver lib/leads/intake-service.ts. No bloquea la respuesta al usuario
+  // más de lo necesario, pero tampoco se dispara "en segundo plano" sin
+  // esperar: si fallara, mejor saberlo antes de decir "listo" al usuario.
+  await processNewLead(lead.id);
 
   return { leadId: lead.id, matchedProfessionals: matches.length };
 }

@@ -5,6 +5,7 @@ import { db } from "@/db/client";
 import { leads, serviceInterestSignups } from "@/db/schema";
 import { resolveRegionId } from "@/lib/estimation/repository";
 import { LEAD_CONSENT_VERSION } from "@/lib/leads/validation";
+import { processNewLead } from "@/lib/leads/intake-service";
 import { checkRateLimit, clientIpFromHeaders } from "@/lib/security/rate-limit";
 import { toSafeError, type ErrorKind } from "@/lib/errors/safe-message";
 import { directLeadFormSchema, notifyMeFormSchema } from "./validation";
@@ -96,6 +97,8 @@ export async function submitDirectLeadAction(
         consentAcceptedAt: new Date(),
       })
       .returning();
+
+    await processNewLead(lead.id);
 
     return { ok: true, data: { leadId: lead.id } };
   } catch (err) {

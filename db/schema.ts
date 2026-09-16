@@ -64,6 +64,21 @@ export const budgetLineCategoryEnum = pgEnum("budget_line_category", ["equipo", 
  * `con_incidencia`: algo ha ido mal en el proceso (ver `incidentNotes`) y
  * requiere atención manual antes de continuar.
  */
+/**
+ * Ampliado (aditivo, nunca se quitan valores) con la máquina de estados
+ * formal de `lib/leads/state-machine.ts`. Los 9 valores originales de
+ * arriba siguen siendo válidos y no se recodifica ningún lead histórico.
+ * `en_validacion`/`en_cola`: pasos intermedios explícitos antes de
+ * `validado`/`asignado`. `notificado`/`visto`/`aceptado`: ciclo de
+ * respuesta del profesional tras la asignación. `contacto_pendiente`:
+ * aceptado, con el plazo de contacto corriendo. `presupuesto_pendiente`/
+ * `presupuesto_enviado`/`en_revision_usuario`: ciclo del presupuesto.
+ * `ganado`/`perdido`/`rechazado`/`expirado`/`cancelado`/`invalido`:
+ * estados terminales explícitos (más precisos que el genérico `cerrado`,
+ * que se mantiene por compatibilidad con leads antiguos).
+ * `reasignacion_pendiente`/`reasignado`: ciclo de reasignación por
+ * incumplimiento de plazo.
+ */
 export const leadStatusEnum = pgEnum("lead_status", [
   "nuevo",
   "validado",
@@ -74,6 +89,24 @@ export const leadStatusEnum = pgEnum("lead_status", [
   "sin_cobertura",
   "cerrado",
   "con_incidencia",
+  "en_validacion",
+  "en_cola",
+  "notificado",
+  "visto",
+  "aceptado",
+  "contacto_pendiente",
+  "contacto_confirmado",
+  "presupuesto_pendiente",
+  "presupuesto_enviado",
+  "en_revision_usuario",
+  "ganado",
+  "perdido",
+  "rechazado",
+  "expirado",
+  "reasignacion_pendiente",
+  "reasignado",
+  "cancelado",
+  "invalido",
 ]);
 
 /** Nivel de intención de compra declarado por el propio usuario al pedir presupuestos. */
@@ -500,6 +533,16 @@ export const professionals = pgTable("professionals", {
   verificationStatus: professionalVerificationStatusEnum("verification_status").notNull().default("pendiente"),
   isActive: boolean("is_active").notNull().default(false),
   notes: text("notes"),
+  /** Hash de contraseña para el portal del profesional (null = todavía no puede entrar). Nunca se guarda en claro. */
+  passwordHash: text("password_hash"),
+  /** Cuántos leads activos (no en un estado terminal) puede tener asignados a la vez. */
+  maxConcurrentLeads: integer("max_concurrent_leads").notNull().default(5),
+  /** Pausa temporal voluntaria (vacaciones, sobrecarga): mientras esté en el futuro, no es elegible para nuevas asignaciones. */
+  pausedUntil: timestamp("paused_until", { withTimezone: true }),
+  pauseReason: text("pause_reason"),
+  /** Preferencias de notificación simples (p. ej. { email: true, sms: false }); sin tabla aparte por ahora. */
+  notificationPreferences: jsonb("notification_preferences").$type<Record<string, boolean> | null>(),
+  lastActivityAt: timestamp("last_activity_at", { withTimezone: true }),
   ...timestamps,
 });
 
@@ -563,6 +606,154 @@ export const leads = pgTable("leads", {
   consentAcceptedAt: timestamp("consent_accepted_at", { withTimezone: true }).notNull(),
   /** De qué landing page SEO viene la sesión que generó este lead (atribución). */
   entryPath: text("entry_path"),
+
+  // --- Ciclo de respuesta del profesional (máquina de estados ampliada) ---
+  notifiedAt: timestamp("notified_at", { withTimezone: true }),
+  viewedAt: timestamp("viewed_at", { withTimezone: true }),
+  /** Cuándo el profesional aceptó o rechazó explícitamente la solicitud. */
+  respondedAt: timestamp("responded_at", { withTimezone: true }),
+  acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+  /** Plazo límite para confirmar contacto con el usuario, calculado al notificar (ver lib/leads/deadline-config.ts). */
+  contactDeadlineAt: timestamp("contact_deadline_at", { withTimezone: true }),
+  contactWarningSentAt: timestamp("contact_warning_sent_at", { withTimezone: true }),
+  contactConfirmedAt: timestamp("contact_confirmed_at", { withTimezone: true }),
+  /** Método declarado por el profesional (llamada, whatsapp, email...), texto libre. */
+  contactMethod: text("contact_method"),
+  requiresSiteVisit: boolean("requires_site_visit").notNull().default(false),
+  quoteDeadlineAt: timestamp("quote_deadline_at", { withTimezone: true }),
+  quoteWarningSentAt: timestamp("quote_warning_sent_at", { withTimezone: true }),
+  /**
+   * Pausa justificada de un plazo (visita pendiente, información del
+   * usuario, proveedor externo...) — mientras esté en el futuro, el cron
+   * de plazos no envía avisos ni reasigna este lead.
+   */
+  deadlinePausedUntil: timestamp("deadline_paused_until", { withTimezone: true }),
+  deadlinePauseReason: text("deadline_pause_reason"),
+  reassignmentPendingAt: timestamp("reassignment_pending_at", { withTimezone: true }),
+  reassignedAt: timestamp("reassigned_at", { withTimezone: true }),
+  reassignmentCount: integer("reassignment_count").notNull().default(0),
+  reassignmentReason: text("reassignment_reason"),
+  /** Si se ha detectado como posible duplicado de otro lead reciente (mismo email+servicio), sin bloquear su creación. */
+  duplicateOfLeadId: uuid("duplicate_of_lead_id"),
+  ...timestamps,
+});
+
+/**
+ * Auditoría inmutable de la máquina de estados: una fila por cada
+ * transición real de un lead, quién la hizo (sistema/admin/profesional) y
+ * por qué. Nunca se actualiza ni se borra una fila — es el historial que
+ * alimenta la línea temporal del lead en /admin.
+ */
+export const leadActorTypeEnum = pgEnum("lead_actor_type", ["sistema", "admin", "profesional", "usuario"]);
+
+export const leadStatusHistory = pgTable("lead_status_history", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  leadId: uuid("lead_id")
+    .notNull()
+    .references(() => leads.id),
+  fromStatus: leadStatusEnum("from_status"),
+  toStatus: leadStatusEnum("to_status").notNull(),
+  actorType: leadActorTypeEnum("actor_type").notNull(),
+  /** Id del admin/profesional que hizo el cambio, si no fue el sistema. Sin tabla de usuarios admin, se guarda como texto libre ("admin"). */
+  actorId: text("actor_id"),
+  reason: text("reason"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Exclusión manual de un profesional concreto para un lead concreto (p.
+ * ej. el usuario pide explícitamente no ser contactado por ese
+ * profesional, o un admin lo descarta por una incidencia previa). No
+ * afecta a su elegibilidad para el resto de leads.
+ */
+export const leadProfessionalExclusions = pgTable("lead_professional_exclusions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  leadId: uuid("lead_id")
+    .notNull()
+    .references(() => leads.id),
+  professionalId: uuid("professional_id")
+    .notNull()
+    .references(() => professionals.id),
+  reason: text("reason"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const leadQuoteStatusEnum = pgEnum("lead_quote_status", [
+  "enviado",
+  "rechazado_por_usuario",
+  "no_necesario",
+]);
+
+/**
+ * Presupuesto estructurado que un profesional entrega para un lead. Un
+ * lead puede tener varios a lo largo del tiempo (p. ej. uno rechazado y
+ * uno revisado), por eso es tabla aparte y no columnas sueltas en `leads`.
+ */
+export const leadQuotes = pgTable("lead_quotes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  leadId: uuid("lead_id")
+    .notNull()
+    .references(() => leads.id),
+  professionalId: uuid("professional_id")
+    .notNull()
+    .references(() => professionals.id),
+  amount: money("amount").notNull(),
+  vatPct: pct("vat_pct"),
+  estimatedDurationDays: integer("estimated_duration_days"),
+  /** Partidas/materiales como lista libre — sin tabla aparte, para no ampliar el alcance más de lo necesario. */
+  lineItems: jsonb("line_items").$type<{ label: string; amount: number }[] | null>(),
+  conditions: text("conditions"),
+  observations: text("observations"),
+  validityDays: integer("validity_days"),
+  status: leadQuoteStatusEnum("status").notNull().default("enviado"),
+  ...timestamps,
+});
+
+export const notificationChannelEnum = pgEnum("notification_channel", ["email", "sms", "whatsapp", "interno"]);
+export const notificationStatusEnum = pgEnum("notification_status", [
+  "pendiente",
+  "simulado",
+  "enviado",
+  "fallido",
+]);
+
+/**
+ * Registro de cada notificación, real o simulada. `status = 'simulado'`
+ * es honesto: significa que el adaptador `mock` la registró pero nunca la
+ * envió de verdad porque no hay proveedor configurado (ver
+ * lib/notifications). Nunca se marca `enviado` sin confirmación real del
+ * proveedor.
+ */
+export const notifications = pgTable("notifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  templateKey: text("template_key").notNull(),
+  channel: notificationChannelEnum("channel").notNull(),
+  recipient: text("recipient").notNull(),
+  subject: text("subject"),
+  body: text("body").notNull(),
+  leadId: uuid("lead_id").references(() => leads.id),
+  professionalId: uuid("professional_id").references(() => professionals.id),
+  status: notificationStatusEnum("status").notNull().default("pendiente"),
+  attempts: integer("attempts").notNull().default(0),
+  lastError: text("last_error"),
+  sentAt: timestamp("sent_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Un resumen por cada ejecución del cron de plazos
+ * (`app/api/cron/lead-deadlines`), visible en /admin para poder detectar
+ * fallos de automatización sin mirar logs externos.
+ */
+export const automationRuns = pgTable("automation_runs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  job: text("job").notNull(),
+  startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
+  finishedAt: timestamp("finished_at", { withTimezone: true }),
+  processedCount: integer("processed_count").notNull().default(0),
+  errorCount: integer("error_count").notNull().default(0),
+  details: jsonb("details"),
   ...timestamps,
 });
 

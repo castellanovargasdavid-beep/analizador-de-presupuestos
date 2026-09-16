@@ -6,6 +6,7 @@ import { db } from "@/db/client";
 import { professionalServiceAreas, professionals } from "@/db/schema";
 import { recordAudit } from "@/lib/admin/audit";
 import { toSafeError, type ErrorKind } from "@/lib/errors/safe-message";
+import { hashPassword } from "@/lib/professional/auth";
 import { professionalFormSchema, serviceAreaFormSchema } from "./validation";
 
 export interface ActionResult {
@@ -23,13 +24,32 @@ export async function saveProfessionalAction(_prev: ActionResult, formData: Form
     verificationStatus: formData.get("verificationStatus"),
     isActive: formData.get("isActive") === "on",
     notes: formData.get("notes"),
+    maxConcurrentLeads: formData.get("maxConcurrentLeads") || undefined,
+    newPassword: formData.get("newPassword"),
+    pauseReason: formData.get("pauseReason"),
+    pauseHours: formData.get("pauseHours") || undefined,
+    resumeNow: formData.get("resumeNow") === "on",
   });
   if (!parsed.success) {
     return { ok: false, errorKind: "validation", error: parsed.error.issues.map((i) => i.message).join("; ") };
   }
   const data = parsed.data;
 
+  // Pausa manual desde el admin: horas > 0 extiende/fija la pausa desde ahora;
+  // `resumeNow` la levanta explícitamente; si no se toca ninguna de las dos,
+  // no se modifica una pausa ya existente (p.ej. al editar solo las notas).
+  const pauseUpdate: { pausedUntil?: Date | null; pauseReason?: string | null } = {};
+  if (data.resumeNow) {
+    pauseUpdate.pausedUntil = null;
+    pauseUpdate.pauseReason = null;
+  } else if (data.pauseHours > 0) {
+    pauseUpdate.pausedUntil = new Date(Date.now() + data.pauseHours * 60 * 60 * 1000);
+    pauseUpdate.pauseReason = data.pauseReason ?? null;
+  }
+
   try {
+    const passwordHash = data.newPassword ? await hashPassword(data.newPassword) : undefined;
+
     if (data.id) {
       await db
         .update(professionals)
@@ -40,13 +60,16 @@ export async function saveProfessionalAction(_prev: ActionResult, formData: Form
           verificationStatus: data.verificationStatus,
           isActive: data.isActive,
           notes: data.notes ?? null,
+          maxConcurrentLeads: data.maxConcurrentLeads,
+          ...pauseUpdate,
+          ...(passwordHash ? { passwordHash } : {}),
         })
         .where(eq(professionals.id, data.id));
       await recordAudit({
         action: "update",
         entityType: "professional",
         entityId: data.id,
-        summary: `Editado profesional "${data.name}" (${data.verificationStatus}${data.isActive ? ", activo" : ", inactivo"})`,
+        summary: `Editado profesional "${data.name}" (${data.verificationStatus}${data.isActive ? ", activo" : ", inactivo"}${passwordHash ? ", contraseña restablecida" : ""})`,
       });
     } else {
       const [row] = await db
@@ -58,6 +81,10 @@ export async function saveProfessionalAction(_prev: ActionResult, formData: Form
           verificationStatus: data.verificationStatus,
           isActive: data.isActive,
           notes: data.notes ?? null,
+          maxConcurrentLeads: data.maxConcurrentLeads,
+          pausedUntil: pauseUpdate.pausedUntil ?? null,
+          pauseReason: pauseUpdate.pauseReason ?? null,
+          passwordHash: passwordHash ?? null,
         })
         .returning({ id: professionals.id });
       await recordAudit({

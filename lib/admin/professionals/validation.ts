@@ -18,6 +18,25 @@ export const professionalFormSchema = z.object({
     .max(2000)
     .optional()
     .transform((v) => (v ? v : undefined)),
+  maxConcurrentLeads: z.coerce.number().int().min(1, "Debe ser al menos 1").max(100).default(5),
+  /** Contraseña de acceso al portal. En blanco = no cambiar (o sin acceso todavía si nunca se ha fijado). */
+  newPassword: z
+    .string()
+    .trim()
+    .min(8, "La contraseña debe tener al menos 8 caracteres")
+    .max(200)
+    .optional()
+    .transform((v) => (v ? v : undefined)),
+  pauseReason: z
+    .string()
+    .trim()
+    .max(500)
+    .optional()
+    .transform((v) => (v ? v : undefined)),
+  /** > 0 = pausar desde ahora esas horas. 0/vacío = no tocar la pausa existente, salvo que `resumeNow` esté marcado. */
+  pauseHours: z.coerce.number().int().min(0).max(8760).optional().default(0),
+  /** Levanta explícitamente una pausa existente, aunque `pauseHours` sea 0. */
+  resumeNow: z.boolean().default(false),
 });
 
 export type ProfessionalFormValues = z.infer<typeof professionalFormSchema>;

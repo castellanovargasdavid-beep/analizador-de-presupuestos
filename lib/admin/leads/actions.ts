@@ -2,9 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
+import type { PgUpdateSetSource } from "drizzle-orm/pg-core";
 import { db } from "@/db/client";
 import { leads } from "@/db/schema";
 import { recordAudit } from "@/lib/admin/audit";
+import { transitionLead, recordLeadNote } from "@/lib/leads/lifecycle-service";
 import { toSafeError, type ErrorKind } from "@/lib/errors/safe-message";
 import { leadUpdateFormSchema } from "./validation";
 
@@ -52,25 +54,44 @@ export async function updateLeadAction(_prev: ActionResult, formData: FormData):
     }
 
     const now = new Date();
-    await db
-      .update(leads)
-      .set({
-        status: data.status,
-        assignedProfessionalId: data.assignedProfessionalId ?? null,
-        discardReason: data.status === "descartado" ? (data.discardReason ?? null) : null,
-        contactOutcome: data.contactOutcome ?? existing.contactOutcome,
-        agreedPrice: data.agreedPrice ?? existing.agreedPrice,
-        paymentStatus: data.paymentStatus,
-        paymentAmount: data.paymentAmount ?? existing.paymentAmount,
-        incidentNotes: data.status === "con_incidencia" ? (data.incidentNotes ?? null) : existing.incidentNotes,
-        validatedAt: existing.validatedAt ?? (data.status === "validado" ? now : null),
-        assignedAt: existing.assignedAt ?? (data.status === "asignado" ? now : null),
-        sentToProfessionalAt: existing.sentToProfessionalAt ?? (data.status === "enviado" ? now : null),
-        contactedAt: existing.contactedAt ?? (data.status === "contactado" ? now : null),
-        paymentRegisteredAt:
-          existing.paymentRegisteredAt ?? (data.paymentStatus === "pagado" ? now : null),
-      })
-      .where(eq(leads.id, data.id));
+    const extraFields: PgUpdateSetSource<typeof leads> = {
+      assignedProfessionalId: data.assignedProfessionalId ?? null,
+      discardReason: data.status === "descartado" ? (data.discardReason ?? null) : null,
+      contactOutcome: data.contactOutcome ?? existing.contactOutcome,
+      agreedPrice: data.agreedPrice ?? existing.agreedPrice,
+      paymentStatus: data.paymentStatus,
+      paymentAmount: data.paymentAmount ?? existing.paymentAmount,
+      incidentNotes: data.status === "con_incidencia" ? (data.incidentNotes ?? null) : existing.incidentNotes,
+      validatedAt: existing.validatedAt ?? (data.status === "validado" ? now : null),
+      assignedAt: existing.assignedAt ?? (data.status === "asignado" ? now : null),
+      sentToProfessionalAt: existing.sentToProfessionalAt ?? (data.status === "enviado" ? now : null),
+      contactedAt: existing.contactedAt ?? (data.status === "contactado" ? now : null),
+      paymentRegisteredAt: existing.paymentRegisteredAt ?? (data.paymentStatus === "pagado" ? now : null),
+    };
+
+    // `leads.status` solo se escribe a través de la máquina de estados
+    // (`lib/leads/lifecycle-service.ts`), nunca con un `db.update` directo —
+    // así este editor rápido también queda registrado en el historial de
+    // auditoría del lead. `force: true` porque este formulario permite
+    // saltos de estado que la máquina no modela como transición "normal"
+    // (uso de administrador corrigiendo un dato a mano).
+    if (data.status === existing.status) {
+      await recordLeadNote({
+        leadId: data.id,
+        actorType: "admin",
+        reason: "Edición manual de datos del lead desde el panel (sin cambio de estado).",
+        extraFields,
+      });
+    } else {
+      await transitionLead({
+        leadId: data.id,
+        toStatus: data.status,
+        actorType: "admin",
+        reason: `Cambio manual de estado desde el panel de administración.`,
+        force: true,
+        extraFields,
+      });
+    }
 
     await recordAudit({
       action: "update",

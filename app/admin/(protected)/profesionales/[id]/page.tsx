@@ -43,7 +43,13 @@ export default async function AdminProfesionalDetailPage({ params }: { params: P
       <Card className="mt-6 max-w-lg">
         <h2 className="font-bold text-neutral-950">Datos del profesional</h2>
         <div className="mt-3">
-          <ProfessionalForm initial={professional} />
+          <ProfessionalForm
+            initial={{
+              ...professional,
+              hasPassword: Boolean(professional.passwordHash),
+              maxConcurrentLeads: professional.maxConcurrentLeads,
+            }}
+          />
         </div>
       </Card>
 

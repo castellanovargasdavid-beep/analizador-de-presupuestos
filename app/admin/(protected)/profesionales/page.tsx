@@ -31,33 +31,43 @@ export default async function AdminProfesionalesPage() {
     <div>
       <h1 className="text-2xl font-bold text-neutral-950">Profesionales</h1>
       <p className="mt-1 text-sm text-neutral-600">
-        Gestión manual de la red de profesionales verificados. No hay portal ni acceso propio para ellos todavía:
-        todo (verificación, zonas de cobertura, asignación de leads) se hace desde aquí.
+        Gestión de la red de profesionales verificados: verificación, zonas de cobertura, capacidad y acceso al
+        portal (donde aceptan/rechazan leads y envían presupuestos) se configuran desde aquí. La asignación de
+        leads nuevos es automática; desde la ficha de cada lead puedes reasignar manualmente si hace falta.
       </p>
 
       <div className="mt-6">
-        <DataTable columns={["Nombre", "Contacto", "Verificación", "Activo", "Leads asignados", "Detalle"]}>
-          {rows.map(({ professional: p, assignedLeads }) => (
-            <tr key={p.id}>
-              <td className="px-4 py-3 font-medium text-neutral-950">{p.name}</td>
-              <td className="px-4 py-3 text-neutral-600">
-                <div>{p.email}</div>
-                {p.phone && <div className="text-xs text-neutral-500">{p.phone}</div>}
-              </td>
-              <td className="px-4 py-3">
-                <Badge tone={VERIFICATION_TONE[p.verificationStatus] ?? "neutral"}>{p.verificationStatus}</Badge>
-              </td>
-              <td className="px-4 py-3">
-                <Badge tone={p.isActive ? "good" : "neutral"}>{p.isActive ? "Activo" : "Inactivo"}</Badge>
-              </td>
-              <td className="px-4 py-3 text-neutral-600">{assignedLeads}</td>
-              <td className="px-4 py-3">
-                <Link href={`/admin/profesionales/${p.id}`} className="text-sm font-semibold text-brand-700 hover:underline">
-                  Ver / editar →
-                </Link>
-              </td>
-            </tr>
-          ))}
+        <DataTable columns={["Nombre", "Contacto", "Verificación", "Activo", "Portal", "Pausado", "Leads asignados", "Detalle"]}>
+          {rows.map(({ professional: p, assignedLeads }) => {
+            const isPaused = Boolean(p.pausedUntil && p.pausedUntil > new Date());
+            return (
+              <tr key={p.id}>
+                <td className="px-4 py-3 font-medium text-neutral-950">{p.name}</td>
+                <td className="px-4 py-3 text-neutral-600">
+                  <div>{p.email}</div>
+                  {p.phone && <div className="text-xs text-neutral-500">{p.phone}</div>}
+                </td>
+                <td className="px-4 py-3">
+                  <Badge tone={VERIFICATION_TONE[p.verificationStatus] ?? "neutral"}>{p.verificationStatus}</Badge>
+                </td>
+                <td className="px-4 py-3">
+                  <Badge tone={p.isActive ? "good" : "neutral"}>{p.isActive ? "Activo" : "Inactivo"}</Badge>
+                </td>
+                <td className="px-4 py-3">
+                  <Badge tone={p.passwordHash ? "good" : "neutral"}>{p.passwordHash ? "Con acceso" : "Sin acceso"}</Badge>
+                </td>
+                <td className="px-4 py-3">
+                  <Badge tone={isPaused ? "warning" : "neutral"}>{isPaused ? "Pausado" : "—"}</Badge>
+                </td>
+                <td className="px-4 py-3 text-neutral-600">{assignedLeads}</td>
+                <td className="px-4 py-3">
+                  <Link href={`/admin/profesionales/${p.id}`} className="text-sm font-semibold text-brand-700 hover:underline">
+                    Ver / editar →
+                  </Link>
+                </td>
+              </tr>
+            );
+          })}
         </DataTable>
         {rows.length === 0 && (
           <p className="mt-4 text-sm text-neutral-500">
