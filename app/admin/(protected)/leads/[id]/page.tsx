@@ -91,6 +91,36 @@ export default async function AdminLeadDetailPage({ params }: { params: Promise<
                 <dt className="text-xs font-semibold text-neutral-500">Intención declarada</dt>
                 <dd className="text-neutral-800">{lead.purchaseIntent ?? "—"}</dd>
               </div>
+              {lead.propertyType && (
+                <div>
+                  <dt className="text-xs font-semibold text-neutral-500">Tipo de inmueble</dt>
+                  <dd className="text-neutral-800">{lead.propertyType}</dd>
+                </div>
+              )}
+              {lead.urgency && (
+                <div>
+                  <dt className="text-xs font-semibold text-neutral-500">Urgencia</dt>
+                  <dd className="text-neutral-800">{lead.urgency}</dd>
+                </div>
+              )}
+              {lead.approxDimensions && (
+                <div>
+                  <dt className="text-xs font-semibold text-neutral-500">Dimensiones aproximadas</dt>
+                  <dd className="text-neutral-800">{lead.approxDimensions}</dd>
+                </div>
+              )}
+              {lead.userStatedBudget && (
+                <div>
+                  <dt className="text-xs font-semibold text-neutral-500">Presupuesto del usuario</dt>
+                  <dd className="text-neutral-800">{formatEUR(lead.userStatedBudget)}</dd>
+                </div>
+              )}
+              {lead.currentState && (
+                <div className="sm:col-span-2">
+                  <dt className="text-xs font-semibold text-neutral-500">Estado actual</dt>
+                  <dd className="text-neutral-800">{lead.currentState}</dd>
+                </div>
+              )}
               {lead.description && (
                 <div className="sm:col-span-2">
                   <dt className="text-xs font-semibold text-neutral-500">Descripción</dt>

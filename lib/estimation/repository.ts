@@ -152,11 +152,12 @@ export async function persistEstimate(args: {
   input: EstimationInput;
   evaluation: EvaluationResult;
   regionSlug: string | null;
-  materialLevelSlug: string;
+  /** `null` para servicios sin concepto de "nivel de material/gama" (la mayoría de los nuevos). */
+  materialLevelSlug: string | null;
   anonymousSessionId?: string | null;
 }): Promise<string> {
   const regionId = await resolveRegionId(args.regionSlug);
-  const materialLevelId = await resolveMaterialLevelId(args.materialLevelSlug);
+  const materialLevelId = args.materialLevelSlug ? await resolveMaterialLevelId(args.materialLevelSlug) : null;
   const subtotalRange = args.evaluation.ranges.find((r) => r.groupKey === "subtotal")!;
   const totalRange = args.evaluation.ranges.find((r) => r.groupKey === "total")!;
 

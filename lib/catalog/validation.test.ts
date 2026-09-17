@@ -59,4 +59,43 @@ describe("directLeadFormSchema", () => {
       expect(result.data.regionSlug).toBeUndefined();
     }
   });
+
+  it("acepta los campos adicionales opcionales (tipo de inmueble, urgencia, dimensiones, presupuesto...)", () => {
+    const result = directLeadFormSchema.safeParse({
+      ...base,
+      propertyType: "piso",
+      urgency: "urgente",
+      desiredTimeframe: "Esta semana",
+      currentState: "No sube la persiana, el motor no hace ruido.",
+      approxDimensions: "2 metros de ancho",
+      userStatedBudget: "150",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.propertyType).toBe("piso");
+      expect(result.data.urgency).toBe("urgente");
+      expect(result.data.userStatedBudget).toBe(150);
+    }
+  });
+
+  it("los campos adicionales son opcionales: se puede omitirlos todos", () => {
+    const result = directLeadFormSchema.safeParse(base);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.propertyType).toBeUndefined();
+      expect(result.data.urgency).toBeUndefined();
+      expect(result.data.userStatedBudget).toBeUndefined();
+    }
+  });
+
+  it("rechaza un tipo de inmueble que no está en la lista cerrada", () => {
+    const result = directLeadFormSchema.safeParse({ ...base, propertyType: "castillo" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rechaza un presupuesto no numérico, cero o fuera de rango", () => {
+    expect(directLeadFormSchema.safeParse({ ...base, userStatedBudget: "no-es-un-numero" }).success).toBe(false);
+    expect(directLeadFormSchema.safeParse({ ...base, userStatedBudget: "0" }).success).toBe(false);
+    expect(directLeadFormSchema.safeParse({ ...base, userStatedBudget: "9999999" }).success).toBe(false);
+  });
 });

@@ -122,6 +122,10 @@ export const leadPurchaseIntentEnum = pgEnum("lead_purchase_intent", [
  */
 export const leadPaymentStatusEnum = pgEnum("lead_payment_status", ["no_aplica", "pendiente", "pagado"]);
 
+/** Campos adicionales de una solicitud "solo_solicitud" (sin calculadora) — ver lib/catalog/validation.ts. */
+export const leadPropertyTypeEnum = pgEnum("lead_property_type", ["piso", "casa", "local", "otro"]);
+export const leadUrgencyEnum = pgEnum("lead_urgency", ["normal", "urgente"]);
+
 export const professionalVerificationStatusEnum = pgEnum("professional_verification_status", [
   "pendiente",
   "verificado",
@@ -232,6 +236,10 @@ export const serviceTypes = pgTable(
     vatReducedEligible: boolean("vat_reduced_eligible").notNull().default(true),
     availabilityStatus: serviceAvailabilityEnum("availability_status").notNull().default("proximamente"),
     isActive: boolean("is_active").notNull().default(true),
+    /** Qué cubre el cálculo/la solicitud de este servicio — texto libre, se muestra en el resultado. */
+    whatIncluded: text("what_included"),
+    /** Qué NO cubre — igual de importante que lo anterior para no sobreprometer. */
+    whatExcluded: text("what_excluded"),
     ...timestamps,
   },
   (t) => [unique().on(t.categoryId, t.slug)],
@@ -635,6 +643,16 @@ export const leads = pgTable("leads", {
   reassignmentReason: text("reassignment_reason"),
   /** Si se ha detectado como posible duplicado de otro lead reciente (mismo email+servicio), sin bloquear su creación. */
   duplicateOfLeadId: uuid("duplicate_of_lead_id"),
+
+  // --- Campos adicionales de una solicitud sin calculadora (`solo_solicitud`) ---
+  propertyType: leadPropertyTypeEnum("property_type"),
+  urgency: leadUrgencyEnum("urgency"),
+  /** Estado actual del elemento a intervenir, en palabras del usuario (p. ej. "la persiana no sube, motor no suena"). */
+  currentState: text("current_state"),
+  /** Dimensiones aproximadas en texto libre: el significado varía por servicio (m², nº de puertas, metros lineales...). */
+  approxDimensions: text("approx_dimensions"),
+  /** Lo que el usuario tiene pensado gastar, si quiere indicarlo — nunca un precio calculado por el sistema. */
+  userStatedBudget: money("user_stated_budget"),
   ...timestamps,
 });
 

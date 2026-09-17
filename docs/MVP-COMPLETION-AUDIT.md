@@ -282,3 +282,139 @@ Verificación de esta fase: `tsc --noEmit`, `eslint .` — limpios;
 plataforma); `next build` — limpio, todas las rutas nuevas generadas
 (`/admin/leads/[id]`, `/admin/notificaciones`, `/admin/automatizaciones`,
 `/profesional/**`, `/api/cron/lead-deadlines`).
+
+## Addendum 3 (misma sesión) — Activación de los 17 servicios "Próximamente"
+
+Tercera misión explícita: ninguno de los 17 servicios que estaban en
+`proximamente` debía seguir así sin una razón real que lo justificara.
+Cada uno se movió a `disponible` (calculadora orientativa real) o a
+`solo_solicitud` (formulario de solicitud, sin inventar un precio que no
+se puede justificar) — nunca se dejó ninguno en `proximamente` "porque sí".
+
+| Servicio | Estado final | Motivo |
+|---|---|---|
+| Cambiar un grifo, Cambiar una cerradura, Pintar una habitación, Pintar una vivienda completa, Añadir enchufes, Instalar puntos de luz, Instalar un termo eléctrico, Reparar una fuga, Alicatar un baño, Levantar un tabique, Instalar un armario a medida (11) | **`disponible`** | La investigación de mercado (`docs/09-investigacion-precios-multi-servicio.md`) encontró rangos de precio B (agregadores/gremios reales) suficientes para una fórmula simple y justificable (`base + factores condicionales`) |
+| Cambiar el cuadro eléctrico, Instalar una caldera, Reformar una habitación, Reforma integral de vivienda, Mantenimiento de jardín, Limpieza profunda de vivienda, Reparar una persiana (7) | **`solo_solicitud`** | El precio depende de variables que no se pueden reducir honestamente a una fórmula (alcance de una reforma completa, estado real de una caldera/persiana existente, superficie y estado de un jardín) — "si una fórmula no puede justificarse razonablemente, se usa `solo_solicitud` en vez de publicar una calculadora engañosa" |
+
+Verificado en Postgres real: `select availability_status, count(*) from
+service_types group by 1` → `disponible: 12` (11 nuevos + aire
+acondicionado, que sigue intacto), `solo_solicitud: 7`, **`proximamente:
+0`**.
+
+**Arquitectura** (ver `docs/ADDING-NEW-SERVICE.md`, sección "Calculadora
+genérica", para el detalle técnico): se añadió un segundo camino de
+calculadora — genérico y config-driven
+(`lib/estimation/generic/{validation,actions,calculator-configs}.ts` +
+`components/calculator/GenericWizard.tsx` + la ruta
+`app/[categoria]/[servicio]/page.tsx`) — que reutiliza sin cambios el
+motor de precios, la persistencia y la lógica de IVA ya existentes
+(`lib/estimation/engine.ts`, `repository.ts`, `vat.ts`). No se duplicó la
+aplicación por servicio: los 11 servicios nuevos comparten el mismo
+motor, el mismo wizard genérico y la misma página de resultado que aire
+acondicionado — solo cambia la configuración declarativa de campos y los
+factores de precio sembrados. `DirectRequestForm`/`directLeadFormSchema`
+(ya genéricos de una fase anterior) se ampliaron con 6 campos opcionales
+(tipo de inmueble, urgencia, plazo deseado, estado actual, dimensiones
+aproximadas, presupuesto propio) para cubrir los 7 servicios
+`solo_solicitud` sin forzar al usuario a rellenar nada irrelevante —
+todos son opcionales y se muestran en una sección colapsable "Más
+detalles".
+
+**Confianza y honestidad de las calculadoras nuevas**: ningún factor de
+esta tanda tiene confianza A (no hay normativa oficial de precios como el
+IVA); todos son B (fuente de mercado real, agregadores citados en
+`docs/09-investigacion-precios-multi-servicio.md`) o, en un puñado de
+ajustes menores sin desglose de mercado (p. ej. el recargo por urgencia o
+por capacidad grande de un termo), C con nota explícita reconociendo que
+es un ajuste propio razonable, no un dato de mercado. La página de
+resultado muestra siempre, para estas calculadoras, un aviso explícito de
+confianza máxima B y carácter no vinculante, además de la banda de
+incertidumbre ya existente (que para estos servicios cae naturalmente en
+la banda media/alta por la mezcla de confianzas B/C, nunca en la banda
+más estrecha reservada a A).
+
+**Bug real encontrado y corregido durante esta fase (no una hipótesis, un
+error real detectado probando)**: los factores base de "Instalar un termo
+eléctrico" e "Instalar un armario a medida" se sembraron inicialmente con
+`groupKey: "servicio"` en vez de `"equipo"`. El cálculo de IVA reducido
+del motor (`lib/estimation/vat.ts`) exige que los materiales no superen
+el 40% de la base imponible, y ese cálculo solo reconoce los grupos
+`"equipo"`/`"paquete_conductos"` — cualquier otro grupo cuenta
+implícitamente como 0% de materiales. Con el groupKey equivocado, ambos
+servicios (donde el producto en sí, no la mano de obra, domina claramente
+el coste) habrían aplicado incorrectamente el IVA reducido del 10% en vez
+del general del 21%. Se detectó calculando manualmente un caso real
+(armario MDF × 3 metros lineales) y comparando el resultado esperado
+contra el obtenido. Corregido de forma no destructiva usando el
+versionado ya existente de `pricing_rules` (se desactivó la v1 y se creó
+una v2 corregida, sin borrar ningún dato). Existe ahora una aserción de
+regresión permanente en
+`lib/estimation/generic/actions.integration.test.ts` que fija que estos
+dos servicios tributan siempre al tipo general.
+
+**Integración con el sistema de leads/profesionales**: verificado con
+Postgres real (no solo asumido), tanto un lead derivado de calculadora
+(`cambiar-un-grifo`, `disponible`) como uno de solicitud directa
+(`cambiar-el-cuadro-electrico`, `solo_solicitud`) pasan correctamente por
+`processNewLead` → validación automática → intento de asignación
+(`assignLead`) usando sus `serviceTypeId` reales. Como no existe todavía
+ningún profesional real dado de alta, ambos terminan honestamente en
+`sin_cobertura` con el motivo explícito "Sin profesionales verificados y
+elegibles para este servicio/zona en este momento" — el sistema **no
+fabrica cobertura ni asignaciones falsas**. En cuanto se incorpore al
+menos un profesional real con ese servicio y zona, el mismo mecanismo (ya
+probado exhaustivamente en la plataforma de leads, Addendum 2) asignará
+el lead automáticamente sin ningún cambio de código.
+
+**Incidente autoinfligido durante la limpieza de datos de prueba (se
+documenta explícitamente, no se oculta)**: durante la verificación manual
+de esta fase se intentó borrar dos estimaciones de prueba propias con un
+filtro SQL por ventana de tiempo (`created_at > now() - interval '1
+hour' AND anonymous_session_id IS NULL`) en vez de por sus IDs exactos.
+Las dos primeras sentencias `DELETE` (sobre `estimate_items` y
+`estimate_ranges`) se ejecutaron antes de que una tercera fallara por una
+restricción de clave foránea — y ese filtro impreciso ya había borrado
+las líneas de desglose de una estimación histórica **ajena**, real, de
+una sesión de QA anterior (id `aa5c2453-ea02-4c81-a094-be21ef11b9b6`), no
+solo las de prueba propias. Se detectó de inmediato, no se intentó
+borrar nada más, y se cambió al enfoque no destructivo (versionado) para
+la corrección real del bug de IVA. Esa estimación histórica sigue
+existiendo (sin su desglose de partidas — degradación visual, no un
+fallo) y no se ha intentado "arreglarla" reconstruyendo datos, porque eso
+sería fabricar datos donde ya no los hay. Lección aplicada de aquí en
+adelante: nunca borrar datos de desarrollo por ventana de tiempo, siempre
+por ID exacto capturado explícitamente — como se hizo en el script de
+verificación del pipeline de leads de este mismo addendum.
+
+**Pruebas nuevas de esta fase**: `lib/estimation/generic/validation.test.ts`
+(7 tests), `lib/estimation/generic/calculator-configs.test.ts` (11 tests,
+uno por servicio — compara cada config contra los factores realmente
+sembrados en Postgres), `lib/estimation/generic/actions.integration.test.ts`
+(13 tests contra Postgres real — cálculo, persistencia y escenario de IVA
+correcto para los 11 servicios, incluida la regresión de
+termo/armario), más 4 tests nuevos en `lib/catalog/validation.test.ts`
+para los campos opcionales del formulario de solicitud directa.
+`vitest run` completo: **206/206 tests, 27 archivos, 0 fallos**.
+
+**Lo que NO se ha hecho en esta fase** (para no afirmar más de lo real):
+- No se ha dado de alta ningún profesional real para estos 18 servicios
+  — sigue pendiente el mismo bloqueo de negocio descrito en el Addendum 2
+  (`docs/PROFESSIONAL-ONBOARDING.md`). Sin eso, ningún lead de estos
+  servicios se asignará jamás, por diseño.
+- No se ha aplicado todavía la migración `0010` en producción (Neon) —
+  generada, aplicada e idempotente contra Postgres local, igual que las
+  anteriores (ver `docs/PRODUCTION-SETUP.md`).
+- No se ha añadido subida de fotografías al formulario de solicitud
+  directa — sigue explícitamente fuera de alcance (Fase C) hasta que
+  exista almacenamiento seguro de adjuntos, tal como pedía la misión
+  ("solo si el sistema está preparado para manejarlas con seguridad").
+- El aire acondicionado no se ha tocado funcionalmente: su Wizard, su
+  formulario de validación y su Server Action de cálculo siguen siendo
+  los mismos ficheros dedicados de siempre; solo `app/resultado/[id]/page.tsx`
+  ganó una rama condicional (`isAireAcondicionado`) para servir también a
+  los servicios nuevos sin duplicar la página.
+
+Verificación de esta fase: `tsc --noEmit`, `eslint .` — limpios;
+`vitest run` — 206/206 (0 fallos); `next build` — pendiente de ejecutar
+la pasada final junto con el resto de la verificación de esta tarea
+(ver informe final).

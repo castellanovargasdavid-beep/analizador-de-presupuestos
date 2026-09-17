@@ -147,3 +147,19 @@ export const getServiceTypeBySlug = cache(async (categorySlug: string, serviceSl
     .limit(1);
   return service ?? null;
 });
+
+/**
+ * Categoría + servicio a partir de un `serviceTypeId` — usado por
+ * `/resultado/[id]` para construir migas de pan y enlaces correctos sin
+ * que la página tenga que saber de antemano de qué servicio viene la
+ * Estimate (deja de estar hardcodeada a aire acondicionado).
+ */
+export const getServiceTypeWithCategoryById = cache(async (serviceTypeId: string) => {
+  const [row] = await db
+    .select({ service: serviceTypes, category: serviceCategories })
+    .from(serviceTypes)
+    .innerJoin(serviceCategories, eq(serviceTypes.categoryId, serviceCategories.id))
+    .where(eq(serviceTypes.id, serviceTypeId))
+    .limit(1);
+  return row ?? null;
+});

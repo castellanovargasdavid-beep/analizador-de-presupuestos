@@ -39,6 +39,12 @@ export function DirectRequestForm({
       contactEmail: form.get("contactEmail"),
       contactPhone: form.get("contactPhone"),
       description: form.get("description"),
+      propertyType: form.get("propertyType"),
+      urgency: form.get("urgency"),
+      desiredTimeframe: form.get("desiredTimeframe"),
+      currentState: form.get("currentState"),
+      approxDimensions: form.get("approxDimensions"),
+      userStatedBudget: form.get("userStatedBudget"),
       consentAccepted: form.get("consentAccepted") === "on",
       website: form.get("website"),
     });
@@ -151,6 +157,89 @@ export function DirectRequestForm({
             className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
           />
         </label>
+
+        <details className="rounded-lg border border-neutral-200 p-3">
+          <summary className="cursor-pointer text-sm font-semibold text-neutral-700">
+            Más detalles (opcional, pero ayuda al profesional a valorar el trabajo)
+          </summary>
+          <div className="mt-4 space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block">
+                <span className="text-sm font-medium text-neutral-800">Tipo de inmueble</span>
+                <select
+                  name="propertyType"
+                  defaultValue=""
+                  className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-950 focus:border-brand-500 focus:outline-none"
+                >
+                  <option value="">Prefiero no indicarlo</option>
+                  <option value="piso">Piso</option>
+                  <option value="casa">Casa</option>
+                  <option value="local">Local</option>
+                  <option value="otro">Otro</option>
+                </select>
+              </label>
+              <label className="block">
+                <span className="text-sm font-medium text-neutral-800">Urgencia</span>
+                <select
+                  name="urgency"
+                  defaultValue=""
+                  className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-950 focus:border-brand-500 focus:outline-none"
+                >
+                  <option value="">Prefiero no indicarlo</option>
+                  <option value="normal">Normal</option>
+                  <option value="urgente">Urgente</option>
+                </select>
+              </label>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block">
+                <span className="text-sm font-medium text-neutral-800">¿Para cuándo lo necesitas?</span>
+                <input
+                  name="desiredTimeframe"
+                  type="text"
+                  placeholder="Ej. Esta semana, sin prisa..."
+                  className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+                />
+              </label>
+              <label className="block">
+                <span className="text-sm font-medium text-neutral-800">Dimensiones aproximadas</span>
+                <input
+                  name="approxDimensions"
+                  type="text"
+                  placeholder="Ej. 15 m², 3 puertas, 8 metros lineales..."
+                  className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+                />
+              </label>
+            </div>
+
+            <label className="block">
+              <span className="text-sm font-medium text-neutral-800">Estado actual</span>
+              <textarea
+                name="currentState"
+                rows={2}
+                placeholder="Ej. No se puede usar, tiene una avería concreta, es una instalación nueva..."
+                className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+              />
+            </label>
+
+            <label className="block">
+              <span className="text-sm font-medium text-neutral-800">¿Cuánto tienes pensado gastar? (€, opcional)</span>
+              <input
+                name="userStatedBudget"
+                type="text"
+                inputMode="decimal"
+                placeholder="Ej. 300"
+                className="mt-1 w-full max-w-[10rem] rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+              />
+            </label>
+
+            <p className="text-xs text-neutral-500">
+              Todavía no podemos recibir fotos de forma segura desde este formulario. Si crees que una foto ayudaría,
+              descríbelo en el campo de arriba — el profesional puede pedírtela directamente al contactarte.
+            </p>
+          </div>
+        </details>
 
         <label className="flex items-start gap-3">
           <input name="consentAccepted" type="checkbox" required className="mt-1" />

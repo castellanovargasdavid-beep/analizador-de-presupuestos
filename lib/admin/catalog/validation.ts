@@ -32,6 +32,8 @@ export const serviceFormSchema = z.object({
   vatReducedEligible: z.boolean(),
   availabilityStatus: z.enum(["disponible", "solo_solicitud", "proximamente"]),
   isActive: z.boolean(),
+  whatIncluded: z.string().trim().max(2000).optional().transform((v) => v || undefined),
+  whatExcluded: z.string().trim().max(2000).optional().transform((v) => v || undefined),
 });
 
 /**

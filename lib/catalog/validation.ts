@@ -19,11 +19,27 @@ export const DIRECT_LEAD_CONSENT_TEXT =
   "profesionales que verifique para poder recibir presupuestos, y que me contacten por email o teléfono para " +
   "gestionarla.";
 
+export const leadPropertyTypeOptions = ["piso", "casa", "local", "otro"] as const;
+export const leadUrgencyOptions = ["normal", "urgente"] as const;
+
+const optionalText = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .optional()
+    .transform((v) => (v ? v : undefined));
+
 /**
  * `serviceTypeId` NO forma parte de este esquema a propósito: llega como
  * argumento aparte a `submitDirectLeadAction` (nunca desde un campo de
  * formulario que el cliente podría manipular) y se usa directamente, sin
  * pasar por `parsed.data` — ver lib/catalog/actions.ts.
+ *
+ * Los campos añadidos tras `description` son todos opcionales a propósito
+ * ("no añadas campos irrelevantes ni obligues a responder lo que no haga
+ * falta") — existen para que un profesional pueda valorar el trabajo sin
+ * tener que preguntarlo todo por teléfono, no para alargar el formulario.
  */
 export const directLeadFormSchema = z.object({
   regionSlug: z
@@ -40,6 +56,27 @@ export const directLeadFormSchema = z.object({
     .optional()
     .transform((v) => (v ? v : undefined)),
   description: z.string().trim().max(2000, "Máximo 2000 caracteres").min(10, "Cuéntanos brevemente qué necesitas"),
+  propertyType: z
+    .enum(leadPropertyTypeOptions)
+    .optional()
+    .or(z.literal(""))
+    .transform((v) => (v ? v : undefined)),
+  urgency: z
+    .enum(leadUrgencyOptions)
+    .optional()
+    .or(z.literal(""))
+    .transform((v) => (v ? v : undefined)),
+  desiredTimeframe: optionalText(200),
+  currentState: optionalText(1000),
+  approxDimensions: optionalText(200),
+  userStatedBudget: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => (v ? Number(v.replace(/[^0-9.]/g, "")) : undefined))
+    .refine((v) => v === undefined || (Number.isFinite(v) && v > 0 && v <= 1_000_000), {
+      message: "Introduce un importe válido",
+    }),
   consentAccepted: z.boolean().refine((v) => v === true, {
     message: "Tienes que aceptar el consentimiento para poder enviar la solicitud",
   }),

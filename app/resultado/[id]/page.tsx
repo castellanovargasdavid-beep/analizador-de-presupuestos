@@ -13,6 +13,7 @@ import { LeadRequestCard } from "@/components/leads/LeadRequestCard";
 import { ImpossibleResultNotice } from "@/components/result/ImpossibleResultNotice";
 import { TrackOnMount } from "@/components/analytics/TrackOnMount";
 import { getEstimateForDisplay } from "@/lib/estimation/repository";
+import { getServiceTypeWithCategoryById } from "@/lib/catalog/repository";
 import { isPlausibleRange } from "@/lib/estimation/sanity";
 import { buildEstimateSummaryText } from "@/lib/estimation/summary";
 import { formatEUR } from "@/lib/format";
@@ -23,9 +24,11 @@ import { pageMetadata } from "@/lib/metadata";
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const data = await getEstimateForDisplay(id);
-  const description = data
-    ? `Rango orientativo: ${formatEUR(data.estimate.totalMin)} – ${formatEUR(data.estimate.totalMax)} para esta instalación de aire acondicionado, con desglose por partidas y fuentes.`
-    : undefined;
+  if (!data) return pageMetadata({ title: "Tu estimación orientativa", path: `/resultado/${id}`, robots: { index: false, follow: true } });
+
+  const serviceInfo = await getServiceTypeWithCategoryById(data.estimate.serviceTypeId);
+  const serviceName = serviceInfo?.service.name ?? "este servicio";
+  const description = `Rango orientativo: ${formatEUR(data.estimate.totalMin)} – ${formatEUR(data.estimate.totalMax)} para "${serviceName}", con desglose por partidas y fuentes.`;
 
   return pageMetadata({
     title: "Tu estimación orientativa",
@@ -44,9 +47,14 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
   }
 
   const { estimate, items, ranges, methodologyVersion } = data;
+  const serviceInfo = await getServiceTypeWithCategoryById(estimate.serviceTypeId);
+  if (!serviceInfo) notFound();
+  const { service, category } = serviceInfo;
+  const isAireAcondicionado = category.slug === "aire-acondicionado" && service.slug === "instalacion";
+
   const ivaRange = ranges.find((r) => r.groupKey === "iva");
   const rite = estimate.inputs as { quantities?: { potenciaKw?: number } };
-  const superaRite = typeof rite.quantities?.potenciaKw === "number" && rite.quantities.potenciaKw > 5;
+  const superaRite = isAireAcondicionado && typeof rite.quantities?.potenciaKw === "number" && rite.quantities.potenciaKw > 5;
   const isResultPlausible = isPlausibleRange(estimate.totalMin, estimate.totalMax);
 
   const summaryText = buildEstimateSummaryText({
@@ -62,7 +70,7 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
       <Breadcrumbs
         items={[
           { label: "Inicio", href: "/" },
-          { label: "Instalación de aire acondicionado", href: "/aire-acondicionado/instalacion" },
+          { label: service.name, href: `/${category.slug}/${service.slug}` },
           { label: "Resultado" },
         ]}
       />
@@ -74,7 +82,7 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
       ) : (
         <>
       <div className="mt-4">
-        <ShareActions summaryText={summaryText} fileName="estimacion-aire-acondicionado.txt" />
+        <ShareActions summaryText={summaryText} fileName={`estimacion-${service.slug}.txt`} />
       </div>
 
       <Card className="mt-6">
@@ -127,23 +135,63 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
               Se ha aplicado el tipo{" "}
               <strong>{estimate.vatScenario === "general" ? "general (21%)" : "reducido (10%)"}</strong>. El tipo
               reducido del 10% solo aplica si eres persona física, la vivienda es de uso particular y tiene más de 2
-              años, <strong>y además</strong> el equipo no supera el 40% del presupuesto — algo que en instalaciones
-              de aire acondicionado suele incumplirse porque el equipo domina el coste. Si compras el equipo por
-              separado y solo contratas la instalación, la mano de obra podría tributar al 10%: pregúntalo.
+              años, <strong>y además</strong> los materiales aportados por la empresa no superan el 40% del
+              presupuesto
+              {isAireAcondicionado
+                ? " — algo que en instalaciones de aire acondicionado suele incumplirse porque el equipo domina el coste. Si compras el equipo por separado y solo contratas la instalación, la mano de obra podría tributar al 10%: pregúntalo."
+                : "."}
             </p>
           </div>
         </div>
       </Card>
 
-      <Card className="mt-6">
-        <h2 className="font-bold text-neutral-950">Siguiente paso</h2>
-        <p className="mt-2 text-neutral-700">
-          Si ya tienes un presupuesto de un instalador, compáralo contra este rango para saber si tiene sentido.
-        </p>
-        <div className="mt-4">
-          <LinkButton href="/aire-acondicionado/instalacion/analizar-presupuesto">Comparar mi presupuesto</LinkButton>
+      {!isAireAcondicionado && (service.whatIncluded || service.whatExcluded) && (
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          {service.whatIncluded && (
+            <Card>
+              <h2 className="font-bold text-neutral-950">Qué incluye este cálculo</h2>
+              <p className="mt-2 whitespace-pre-line text-sm text-neutral-700">{service.whatIncluded}</p>
+            </Card>
+          )}
+          {service.whatExcluded && (
+            <Card>
+              <h2 className="font-bold text-neutral-950">Qué NO incluye</h2>
+              <p className="mt-2 whitespace-pre-line text-sm text-neutral-700">{service.whatExcluded}</p>
+            </Card>
+          )}
         </div>
-      </Card>
+      )}
+
+      {!isAireAcondicionado && (
+        <Card className="mt-6 border-info-bg bg-info-bg/40">
+          <div className="flex gap-3">
+            <InfoIcon className="mt-0.5 size-5 shrink-0 text-info-text" />
+            <div>
+              <h2 className="font-bold text-neutral-950">De dónde sale este rango</h2>
+              <p className="mt-2 text-sm text-neutral-700">
+                El dato de mercado más fiable que tenemos para este servicio es de <strong>confianza B</strong>
+                (portales que agregan presupuestos reales, pero sin metodología ni muestra publicadas) — no hay
+                ninguna fuente oficial o normativa equivalente a la de otras calculadoras de este sitio. Por eso el
+                margen de este rango es deliberadamente más amplio. Esto{" "}
+                <strong>no es un presupuesto vinculante</strong>: es una referencia para negociar con criterio, no un
+                precio cerrado.
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {isAireAcondicionado && (
+        <Card className="mt-6">
+          <h2 className="font-bold text-neutral-950">Siguiente paso</h2>
+          <p className="mt-2 text-neutral-700">
+            Si ya tienes un presupuesto de un instalador, compáralo contra este rango para saber si tiene sentido.
+          </p>
+          <div className="mt-4">
+            <LinkButton href="/aire-acondicionado/instalacion/analizar-presupuesto">Comparar mi presupuesto</LinkButton>
+          </div>
+        </Card>
+      )}
 
       <LeadRequestCard
         estimateId={estimate.id}

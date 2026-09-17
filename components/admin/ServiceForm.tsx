@@ -17,6 +17,8 @@ export interface ServiceFormValues {
   vatReducedEligible?: boolean;
   availabilityStatus?: string;
   isActive?: boolean;
+  whatIncluded?: string | null;
+  whatExcluded?: string | null;
 }
 
 const AVAILABILITY_LABEL: Record<string, string> = {
@@ -122,6 +124,26 @@ export function ServiceForm({
             </option>
           ))}
         </select>
+      </label>
+      <label className="block">
+        <span className="text-xs font-semibold text-neutral-600">
+          Qué incluye el cálculo/la solicitud (opcional, se muestra en el resultado)
+        </span>
+        <textarea
+          name="whatIncluded"
+          defaultValue={initial?.whatIncluded ?? ""}
+          rows={3}
+          className="mt-1 w-full rounded-lg border border-neutral-200 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none"
+        />
+      </label>
+      <label className="block">
+        <span className="text-xs font-semibold text-neutral-600">Qué NO incluye (opcional, igual de importante)</span>
+        <textarea
+          name="whatExcluded"
+          defaultValue={initial?.whatExcluded ?? ""}
+          rows={3}
+          className="mt-1 w-full rounded-lg border border-neutral-200 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none"
+        />
       </label>
       <label className="flex items-center gap-2 text-sm">
         <input name="vatReducedEligible" type="checkbox" defaultChecked={initial?.vatReducedEligible ?? true} />

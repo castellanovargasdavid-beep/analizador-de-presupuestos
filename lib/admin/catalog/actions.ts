@@ -60,6 +60,8 @@ export async function saveServiceAction(_prev: ActionResult, formData: FormData)
     vatReducedEligible: parseBool(formData, "vatReducedEligible"),
     availabilityStatus: formData.get("availabilityStatus"),
     isActive: parseBool(formData, "isActive"),
+    whatIncluded: formData.get("whatIncluded"),
+    whatExcluded: formData.get("whatExcluded"),
   });
   if (!parsed.success) {
     return { ok: false, errorKind: "validation", error: parsed.error.issues.map((i) => i.message).join("; ") };

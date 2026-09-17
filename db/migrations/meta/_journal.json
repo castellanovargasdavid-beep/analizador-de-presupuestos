@@ -71,6 +71,13 @@
       "when": 1789587279801,
       "tag": "0009_brave_terror",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789640408511,
+      "tag": "0010_simple_goliath",
+      "breakpoints": true
     }
   ]
 }
