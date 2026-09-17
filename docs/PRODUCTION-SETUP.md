@@ -20,11 +20,26 @@ Además de las ya existentes (`DATABASE_URL`, `ADMIN_PASSWORD`,
 
 ## 2. Cron de plazos en Vercel
 
-`vercel.json` ya declara:
+`vercel.json` declara:
 
 ```json
-{ "crons": [{ "path": "/api/cron/lead-deadlines", "schedule": "*/15 * * * *" }] }
+{ "crons": [{ "path": "/api/cron/lead-deadlines", "schedule": "0 6 * * *" }] }
 ```
+
+**Limitación real del plan Hobby de Vercel**: solo permite ejecutar un cron
+como máximo una vez al día — un `*/15 * * * *` (cada 15 minutos, el
+diseño original de este documento) hace que Vercel **rechace el
+despliegue** con el error "Hobby accounts are limited to daily cron
+jobs". Por eso el schedule por defecto es diario (`0 6 * * *`, las 6:00
+UTC). Consecuencia práctica de este ajuste: los avisos de "plazo
+próximo" (`CONTACT_WARNING_DELAY_HOURS`/`QUOTE_WARNING_DELAY_HOURS`,
+pensados para dispararse 1-12h antes del vencimiento) y las reasignaciones
+por incumplimiento solo se procesan **una vez al día**, no cada 15
+minutos — un lead puede tardar hasta ~24h más de lo que sugiere
+`docs/REASSIGNMENT-POLICY.md` en ser avisado o reasignado. Si esto no es
+aceptable operativamente, la solución es pasar el proyecto a un plan de
+Vercel que permita crons más frecuentes y volver a poner
+`*/15 * * * *` (o el intervalo que se decida) en `vercel.json`.
 
 Pasos para que funcione de verdad en producción:
 
@@ -38,7 +53,7 @@ Pasos para que funcione de verdad en producción:
    `Authorization: Bearer <CRON_SECRET>` a las llamadas que él mismo
    dispara — no hace falta configurar nada más en `vercel.json` para eso.
 4. Verificar tras el primer despliegue: `/admin/automatizaciones` debe
-   empezar a mostrar ejecuciones cada 15 minutos. Si no aparece ninguna,
+   empezar a mostrar una ejecución diaria. Si no aparece ninguna,
    revisar los logs de Vercel Cron (Project → Cron Jobs) antes de asumir
    que el código falla.
 5. **Sin este paso, el sistema es técnicamente correcto pero no
@@ -107,7 +122,8 @@ Repetido aquí porque es la parte que más fácil es dar por hecha:
 - [ ] Migración `0009` aplicada en la base de producción.
 - [ ] `PROFESSIONAL_SESSION_SECRET` y `CRON_SECRET` configurados (valores
       propios, no los de `.env.local`).
-- [ ] Cron verificado ejecutándose cada 15 minutos en Vercel.
+- [ ] Cron verificado ejecutándose en Vercel (diario en el plan Hobby;
+      más frecuente solo si se sube de plan).
 - [ ] Proveedor de notificaciones real configurado y probado con un envío
       de prueba de verdad.
 - [ ] Al menos un profesional real verificado, activo, con contraseña y
