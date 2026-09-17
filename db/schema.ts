@@ -340,6 +340,20 @@ export const pricingRules = pgTable(
     isActive: boolean("is_active").notNull().default(true),
     validFrom: timestamp("valid_from", { withTimezone: true }).notNull().defaultNow(),
     validTo: timestamp("valid_to", { withTimezone: true }),
+    /**
+     * Metadatos de calidad/metodología — ver docs/CALCULATOR-QUALITY-STANDARD.md.
+     * Deliberadamente NO existe ningún campo "confidenceLevel" aquí: el nivel
+     * de confianza (A/B/C) que se muestra al usuario nunca se declara a mano,
+     * siempre se calcula en `lib/quality/confidence-gate.ts` a partir de estos
+     * campos + los factores + las muestras de `price_validation_samples`.
+     */
+    methodologyDocPath: text("methodology_doc_path"),
+    geographicScope: text("geographic_scope"),
+    reviewedBy: text("reviewed_by"),
+    lastReviewedAt: timestamp("last_reviewed_at", { withTimezone: true }),
+    nextReviewDueAt: timestamp("next_review_due_at", { withTimezone: true }),
+    /** Limitaciones conocidas de esta metodología, en texto libre — puede tener contenido incluso en confianza A (A exige que se documenten, no que no existan). */
+    knownIssues: text("known_issues"),
     ...timestamps,
   },
   (t) => [unique().on(t.serviceTypeId, t.version)],
@@ -653,6 +667,46 @@ export const leads = pgTable("leads", {
   approxDimensions: text("approx_dimensions"),
   /** Lo que el usuario tiene pensado gastar, si quiere indicarlo — nunca un precio calculado por el sistema. */
   userStatedBudget: money("user_stated_budget"),
+  ...timestamps,
+});
+
+// ---------------------------------------------------------------------------
+// Validación empírica de precios — ver docs/PRICE-VALIDATION-PROTOCOL.md y
+// docs/CALCULATOR-QUALITY-STANDARD.md. Cada fila es UN presupuesto real
+// anonimizado, nunca un dato inventado o estimado para "rellenar" el umbral
+// de confianza A. La fuente más natural y honesta es el propio lead
+// cerrado en la plataforma (`leads.agreedPrice`), pero también se admite
+// cargar a mano un presupuesto real conseguido por otra vía (encuesta a
+// profesionales, presupuesto aportado por el propio David...), siempre
+// que sea real y quede trazado.
+// ---------------------------------------------------------------------------
+
+export const validationSampleSourceEnum = pgEnum("validation_sample_source", [
+  "lead_cerrado",
+  "aportado_manualmente",
+]);
+
+export const priceValidationSamples = pgTable("price_validation_samples", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  serviceTypeId: uuid("service_type_id")
+    .notNull()
+    .references(() => serviceTypes.id),
+  regionId: uuid("region_id").references(() => regions.id),
+  source: validationSampleSourceEnum("source").notNull(),
+  /** Si source = 'lead_cerrado': el lead real del que sale este precio (agreedPrice o paymentAmount). */
+  relatedLeadId: uuid("related_lead_id").references(() => leads.id),
+  /** Si el lead tenía una Estimate de calculadora asociada, se guarda para poder calcular el error real (estimado vs. real). Null en un servicio solo_solicitud, honestamente: no hay rango contra el que comparar. */
+  relatedEstimateId: uuid("related_estimate_id").references(() => estimates.id),
+  /** Características del proyecto en texto libre estructurado (tipo de trabajo, zona, particularidades) — nunca datos personales del cliente. */
+  projectCharacteristics: text("project_characteristics"),
+  finalPriceWithVat: money("final_price_with_vat").notNull(),
+  includesVat: boolean("includes_vat").notNull(),
+  includesMaterials: boolean("includes_materials").notNull(),
+  requiredVisit: boolean("required_visit").notNull(),
+  hadUnexpectedIssues: boolean("had_unexpected_issues").notNull().default(false),
+  /** Fecha del presupuesto/trabajo real, no de cuándo se registró en el sistema. */
+  quoteDate: timestamp("quote_date", { withTimezone: true }).notNull(),
+  notes: text("notes"),
   ...timestamps,
 });
 

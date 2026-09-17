@@ -14,6 +14,8 @@ import { ImpossibleResultNotice } from "@/components/result/ImpossibleResultNoti
 import { TrackOnMount } from "@/components/analytics/TrackOnMount";
 import { getEstimateForDisplay } from "@/lib/estimation/repository";
 import { getServiceTypeWithCategoryById } from "@/lib/catalog/repository";
+import { getRuleConfidenceReport } from "@/lib/quality/repository";
+import { ConfidenceDisclosure } from "@/components/result/ConfidenceDisclosure";
 import { isPlausibleRange } from "@/lib/estimation/sanity";
 import { buildEstimateSummaryText } from "@/lib/estimation/summary";
 import { formatEUR } from "@/lib/format";
@@ -51,6 +53,7 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
   if (!serviceInfo) notFound();
   const { service, category } = serviceInfo;
   const isAireAcondicionado = category.slug === "aire-acondicionado" && service.slug === "instalacion";
+  const confidenceReport = isAireAcondicionado ? null : await getRuleConfidenceReport(estimate.pricingRuleId);
 
   const ivaRange = ranges.find((r) => r.groupKey === "iva");
   const rite = estimate.inputs as { quantities?: { potenciaKw?: number } };
@@ -162,24 +165,7 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
         </div>
       )}
 
-      {!isAireAcondicionado && (
-        <Card className="mt-6 border-info-bg bg-info-bg/40">
-          <div className="flex gap-3">
-            <InfoIcon className="mt-0.5 size-5 shrink-0 text-info-text" />
-            <div>
-              <h2 className="font-bold text-neutral-950">De dónde sale este rango</h2>
-              <p className="mt-2 text-sm text-neutral-700">
-                El dato de mercado más fiable que tenemos para este servicio es de <strong>confianza B</strong>
-                (portales que agregan presupuestos reales, pero sin metodología ni muestra publicadas) — no hay
-                ninguna fuente oficial o normativa equivalente a la de otras calculadoras de este sitio. Por eso el
-                margen de este rango es deliberadamente más amplio. Esto{" "}
-                <strong>no es un presupuesto vinculante</strong>: es una referencia para negociar con criterio, no un
-                precio cerrado.
-              </p>
-            </div>
-          </div>
-        </Card>
-      )}
+      {!isAireAcondicionado && confidenceReport && <ConfidenceDisclosure level={confidenceReport.gate.level} />}
 
       {isAireAcondicionado && (
         <Card className="mt-6">
